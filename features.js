@@ -5,6 +5,22 @@ const WEATHERS = ['Sunny','Windy','Rain','Storm','Snow','Blizzard'];
 const WX_LABEL = {Sunny:'Sunny', Windy:'Windy', Rain:'Rainy', Storm:'Stormy', Snow:'Snowy', Blizzard:'Blizzard'};
 const TYPE_LABEL = {fish:'Fish', insects:'Insect', critters:'Critter', fossils:'Fossil', artifacts:'Artifact', gems:'Gem', crops:'Crop', recipes:'Recipe', people:'Villager', quests:'Quest', seeds:'Seed', foraged:'Foraged', animalGoods:'Animal good', artisan:'Artisan good', animals:'Farm animal', upgrades:'Upgrade', shops:'Shop', stock:'For sale', monsters:'Monster', drops:'Monster drop', geodes:'Geode', resources:'Resource', oceanSeeds:'Ocean seed', extras:'Extra character', crafting:'Crafting recipe', weapons:'Weapon', rings:'Ring', clothing:'Clothing', furniture:'Furniture'};
 
+/* ---------- sell prices by quality ---------- */
+// Rule (matches the wiki for every fish and insect): base x 1 / 1.15 / 1.3 / 1.5 / 2, rounded. A few items have their own
+// numbers (D.qtiers, read from the wiki) and some have a single price (D.noq).
+const Q_MULT = [1, 1.15, 1.3, 1.5, 2];
+const Q_NAMES = ['Basic', 'Bronze', 'Silver', 'Gold', 'Osmium'];
+const QUALITY_CATS = new Set(['fish', 'insects', 'critters', 'crops', 'foraged', 'animalGoods', 'artisan']);
+const NOQ = new Set(D.noq || []);
+function priceTiers(c, it){
+  if(!QUALITY_CATS.has(c) || !it.p) return null;
+  const key = c + ':' + it.id;
+  if(NOQ.has(key)) return null;
+  if(D.qtiers && D.qtiers[key]) return D.qtiers[key];
+  return Q_MULT.map(m => Math.round(it.p * m + 1e-9));
+}
+const tiersText = t => t.map((v, i) => Q_NAMES[i] + ' ' + Number(v).toLocaleString('en-US')).join(' · ');
+
 /* ---------- favourites and recent ---------- */
 const isFav = (c, id) => !!S.fav[c + ':' + id];
 function toggleFav(c, id){ const k = c + ':' + id; if(S.fav[k]) delete S.fav[k]; else S.fav[k] = 1; }
@@ -405,7 +421,10 @@ function catalogView(){
   h += `<p class="small muted">${arr.length} shown</p>`;
   h += shown.length ? `<ul class="list">${shown.map(it => {
     const open = !!ui.open[c + ':' + it.id];
-    const det = open ? `<dl class="det">${cfg.detail(it).filter(Boolean).map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : '';
+    const rows = open ? cfg.detail(it).filter(Boolean) : [];
+    const tt = open ? priceTiers(c, it) : null;
+    if(tt) rows.push(['Sell price by quality', tiersText(tt)]);
+    const det = open ? `<dl class="det">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : '';
     return `<li class="it"><div class="it-main" role="button" tabindex="0" aria-expanded="${open}" data-act="open" data-k="${c}:${it.id}"><div class="it-t"><span class="nm">${esc(it.n)}</span>${cfg.seasonal ? seasonChips(it) : ''}<em class="tag">${esc(cfg.groupOf(it))}</em>${isShipped(c, it.id) ? '<em class="tag kelp">Shipped</em>' : ''}</div><div class="it-s">${esc(cfg.sub(it))}</div>${det}</div>${heartBtn(c, it.id, it.n)}</li>`;
   }).join('')}</ul>${arr.length > cap ? `<div style="margin-top:10px"><button class="btn" data-act="gmore">Show all ${arr.length}</button></div>` : ''}` : `<div class="empty">Nothing matches these filters.</div>`;
   return h;

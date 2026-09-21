@@ -345,7 +345,7 @@ function itemRow(c,it){
   let det = '';
   if(open){
     const rows = [];
-    if(isC){ rows.push(['Where', it.w], ['When', it.t]); if(it.wx) rows.push(['Weather', it.wx]); if(it.sz) rows.push(['Size', it.sz]); if(it.d) rows.push(['Difficulty', it.d]); rows.push(['Rarity', it.r]); rows.push(['Base price', it.p]); }
+    if(isC){ rows.push(['Where', it.w], ['When', it.t]); if(it.wx) rows.push(['Weather', it.wx]); if(it.sz) rows.push(['Size', it.sz]); if(it.d) rows.push(['Difficulty', it.d]); rows.push(['Rarity', it.r]); const tt = priceTiers(c, it); rows.push(tt ? ['Sell price', tiersText(tt)] : ['Base price', it.p]); }
     else if(c==='fossils') rows.push(['Found in', it.w], ['Skeleton', it.g]);
     else if(c==='artifacts') rows.push(['Comes from', it.w], ['Tip', 'Coffers drop from tilled soil, sand and fishing']);
     else rows.push(['Found', it.w], ['Sells', it.p], ['Element', it.g||'—']);
