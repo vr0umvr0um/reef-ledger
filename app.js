@@ -374,6 +374,7 @@ function peopleView(){
   let arr = D.villagers.slice();
   if(ui.pf==='rom') arr = arr.filter(v => v.rom);
   if(ui.pf==='fav') arr = arr.filter(v => isFav('people', v.id));
+  if(['Townie','Merfolk','Giant'].includes(ui.pf)) arr = arr.filter(v => v.type === ui.pf);
   if(ui.q){ const q = ui.q.toLowerCase(); arr = arr.filter(v => v.n.toLowerCase().includes(q) || v.loved.some(g => g.toLowerCase().includes(q))); }
   if(ui.ps==='birthday') arr.sort((a,b) => (a.b?untilBirthday(a.b):999) - (b.b?untilBirthday(b.b):999));
   else if(ui.ps==='hearts') arr.sort((a,b) => heartsOf(b)-heartsOf(a) || a.n.localeCompare(b.n));
@@ -381,7 +382,7 @@ function peopleView(){
   let h = `<section><div class="h-row"><h2>People</h2><span class="aside num">${D.villagers.filter(v=>heartsOf(v)>=8).length} at 8+ hearts</span></div>
     <p class="lead">Romanceable villagers stop at 8 hearts until you give them the Locket, then 10. Universally loved gift: ${esc((D.universal&&D.universal.loved||[]).join(', ')||'—')}.</p></section>`;
   h += `<div class="toolbar"><input type="search" id="q" placeholder="Search a villager or a gift they love" value="${esc(ui.q)}" aria-label="Search villagers or gifts">
-    <div class="r">${[['all','All'],['rom','Romanceable'],['fav','Favourites']].map(([k,l]) => `<button class="chip" data-act="pf" data-k="${k}" aria-pressed="${ui.pf===k}">${l}</button>`).join('')}<span style="flex:1"></span>
+    <div class="r">${[['all','All'],['Townie','Townsfolk'],['Merfolk','Merfolk'],['Giant','Giants'],['rom','Romanceable'],['fav','Favourites']].map(([k,l]) => `<button class="chip" data-act="pf" data-k="${k}" aria-pressed="${ui.pf===k}">${l}</button>`).join('')}<span style="flex:1"></span>
     <select id="psort" style="width:auto" aria-label="Sort"><option value="birthday" ${ui.ps==='birthday'?'selected':''}>Next birthday</option><option value="hearts" ${ui.ps==='hearts'?'selected':''}>Most hearts</option><option value="name" ${ui.ps==='name'?'selected':''}>Name</option></select></div></div>`;
   h += arr.length ? `<ul class="list">${arr.map(v => {
     const hr = heartsOf(v), n = v.b ? untilBirthday(v.b) : null, rel = S.rel[v.id];
@@ -393,7 +394,7 @@ function peopleView(){
         <div class="pips" aria-label="${hr} hearts">${Array.from({length:10},(_,i) => `<i class="${i<hr?'on':(i>=cap?'lock':'')}"></i>`).join('')}</div>
         <button class="step" data-act="heart" data-id="${v.id}" data-d="1" aria-label="More hearts for ${esc(v.n)}">+</button><b class="num" style="width:34px;text-align:right">${hr}</b></div>
       ${v.rom?`<div class="seg"><button data-act="rel" data-id="${v.id}" data-v="dating" aria-pressed="${rel==='dating'}">Dating (Locket given)</button><button data-act="rel" data-id="${v.id}" data-v="married" aria-pressed="${rel==='married'}">Married</button></div>`:''}
-      <div class="gifts"><b>Loves:</b> ${esc(v.loved.join(', ')||'—')}${v.liked&&v.liked.length?`<br><b>Likes:</b> ${esc(v.liked.join(', '))}`:''}${v.hated.length?`<br><b>Hates:</b> ${esc(v.hated.join(', '))}`:''}</div></li>`;
+      <div class="gifts"><b>Loves:</b> ${esc(v.loved.join(', ')||'—')}${v.liked&&v.liked.length?`<br><b>Likes:</b> ${esc(v.liked.join(', '))}`:''}${v.hated.length?`<br><b>Hates:</b> ${esc(v.hated.join(', '))}`:''}</div>${personDetails(v)}</li>`;
   }).join('')}</ul>` : `<div class="empty">No villagers match. ${ui.pf==='fav'?'Tap the ♡ on a villager to add them here.':''}</div>`;
   return h;
 }
@@ -577,7 +578,8 @@ document.addEventListener('click', async e => {
       if(D_.pt) ui.pt = D_.pt;
       if(D_.r === 'upgrades') ui.ug = D_.ug || 'All';
       if(D_.r === 'shops') ui.sf = 'all';
-      if(D_.r === 'catalog'){ ui.gc = D_.gc; ui.gf = 'All'; ui.gs = false; ui.gmore = false; }
+      if(D_.pf) ui.pf = D_.pf;
+      if(D_.r === 'catalog'){ ui.gc = D_.gc; ui.gf = D_.gf || 'All'; ui.gs = false; ui.gmore = false; }
       window.scrollTo(0,0); render(); break; }
     case 'gsel': { // a global search result
       const t = D_.t, n = D_.n; ui.gq = '';

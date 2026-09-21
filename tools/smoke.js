@@ -2,7 +2,7 @@
 // Usage: node tools/smoke.js
 const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
-const src = ['data.js', 'tips.js', 'features.js', 'app.js'].map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('\n;\n');
+const src = ['data.js', 'people.js', 'tips.js', 'features.js', 'app.js'].map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('\n;\n');
 
 const els = {};
 const mk = id => els[id] || (els[id] = { id, innerHTML: '', hidden: false, className: '', title: '', textContent: '', addEventListener() {}, querySelector() { return null; }, matches() { return false; }, focus() {}, value: '' });
@@ -31,6 +31,7 @@ for (const c of Object.keys(T.CATALOG)) {
   T.ui.gc = c; T.ui.gf = 'All'; T.ui.gs = false;
 for (const r of ['shops','upgrades']) { T.ui.route = r; T.ui.q = ''; check(r, T.VIEWS[r]()); }
 T.ui.q = 'sprinkler'; check('shops search', T.VIEWS.shops()); T.ui.q = ''; T.ui.ugNeed = true; for (const g of ['All','Tools','Bag','Buildings','Lab']) { T.ui.ug = g; check('upgrades ' + g, T.VIEWS.upgrades()); } T.ui.ug = 'All';
+for (const v of T.D.villagers) { T.ui.open['pd:' + v.id] = true; } T.ui.route = 'people'; T.ui.q = ''; T.ui.pf = 'all'; check('people details', T.VIEWS.people()); for (const w of ['Sunny','Rain']) { T.S.weather = w; check('people details ' + w, T.VIEWS.people()); } T.S.weather = 'Sunny'; T.ui.open = {};
 T.ui.route = 'progress'; T.ui.pt = 'shipped'; T.ui.sq = ''; T.ui.shipMiss = false;
 check('shipped', T.VIEWS.progress()); T.ui.shipExp = {fish:true,artisan:true}; check('shipped open', T.VIEWS.progress()); T.ui.sq = 'juice'; check('shipped search', T.VIEWS.progress()); T.ui.sq = '';
 console.log('shippable items:', T.shipMax(), 'in', T.SHIP_CATS.length, 'categories'); T.ui.gmore = true;

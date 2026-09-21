@@ -3,7 +3,7 @@
 
 const WEATHERS = ['Sunny','Windy','Rain','Storm','Snow','Blizzard'];
 const WX_LABEL = {Sunny:'Sunny', Windy:'Windy', Rain:'Rainy', Storm:'Stormy', Snow:'Snowy', Blizzard:'Blizzard'};
-const TYPE_LABEL = {fish:'Fish', insects:'Insect', critters:'Critter', fossils:'Fossil', artifacts:'Artifact', gems:'Gem', crops:'Crop', recipes:'Recipe', people:'Villager', quests:'Quest', seeds:'Seed', foraged:'Foraged', animalGoods:'Animal good', artisan:'Artisan good', animals:'Farm animal', upgrades:'Upgrade', shops:'Shop', stock:'For sale'};
+const TYPE_LABEL = {fish:'Fish', insects:'Insect', critters:'Critter', fossils:'Fossil', artifacts:'Artifact', gems:'Gem', crops:'Crop', recipes:'Recipe', people:'Villager', quests:'Quest', seeds:'Seed', foraged:'Foraged', animalGoods:'Animal good', artisan:'Artisan good', animals:'Farm animal', upgrades:'Upgrade', shops:'Shop', stock:'For sale', monsters:'Monster', drops:'Monster drop', geodes:'Geode', resources:'Resource', oceanSeeds:'Ocean seed', extras:'Extra character', crafting:'Crafting recipe'};
 
 /* ---------- favourites and recent ---------- */
 const isFav = (c, id) => !!S.fav[c + ':' + id];
@@ -234,7 +234,7 @@ function progressHub(){
 /* ---------- field guide hub and global search ---------- */
 function guideSearch(q){
   const s = q.toLowerCase(), out = [];
-  ['fish','insects','critters','fossils','artifacts','gems','crops','seeds','foraged','animalGoods','artisan','recipes'].forEach(c => D[c].forEach(it => { if(it.n.toLowerCase().includes(s)) out.push({t:c, n:it.n, id:it.id}); }));
+  ['fish','insects','critters','fossils','artifacts','gems','crops','seeds','foraged','animalGoods','artisan','monsters','drops','geodes','resources','oceanSeeds','extras','crafting','recipes'].forEach(c => D[c].forEach(it => { if(it.n.toLowerCase().includes(s)) out.push({t:c, n:it.n, id:it.id}); }));
   D.villagers.forEach(v => { if(v.n.toLowerCase().includes(s)) out.push({t:'people', n:v.n, id:v.id}); });
   D.quests.forEach(x => { if(x.n.toLowerCase().includes(s)) out.push({t:'quests', n:x.n, id:x.id}); });
   D.animals.forEach(x => { if(x.n.toLowerCase().includes(s)) out.push({t:'animals', n:x.n, id:x.id}); });
@@ -264,11 +264,11 @@ function guideView(){
       t('farm','Best crop to plant', 'Ranked by gold per day', {r:'crops'}),
       t('gift','Gift planner', 'Birthdays and loved gifts', {r:'gifts'})
     ]],
-    ['Villagers', [t('people','Townsfolk & friends', plural(D.villagers.length,'villager'), {r:'people'})]],
+    ['Villagers & monsters', [t('people','Townsfolk', D.villagers.filter(v => v.type === 'Townie').length + ' townies', {r:'people', pf:'Townie'}), t('people','Giants', D.villagers.filter(v => v.type === 'Giant').length + ' giants', {r:'people', pf:'Giant'}), t('people','Merfolk', D.villagers.filter(v => v.type === 'Merfolk').length + ' merfolk', {r:'people', pf:'Merfolk'}), t('people','Extras', plural(D.extras.length,'character'), {r:'catalog', gc:'extras'}), t('bug','Monsters', plural(D.monsters.length,'monster'), {r:'catalog', gc:'monsters'})]],
     ['Catchables', [t('museum','Fish', cnt2('fish') + ' donated', {r:'museum', c:'fish'}), t('bug','Insects', cnt2('insects') + ' donated', {r:'museum', c:'insects'}), t('museum','Ocean critters', cnt2('critters') + ' donated', {r:'museum', c:'critters'})]],
-    ['Minerals & finds', [t('gem','Gems', cnt2('gems') + ' donated', {r:'museum', c:'gems'}), t('bone','Fossils', cnt2('fossils') + ' donated', {r:'museum', c:'fossils'}), t('scroll','Artifacts', cnt2('artifacts') + ' donated', {r:'museum', c:'artifacts'})]],
-    ['Farm & forage', [t('farm','Crops & plants', plural(D.crops.length,'plant'), {r:'catalog', gc:'crops'}), t('farm','Seeds & saplings', plural(D.seeds.length,'listing'), {r:'catalog', gc:'seeds'}), t('recipes','Foraged items', plural(D.foraged.length,'item'), {r:'catalog', gc:'foraged'})]],
-    ['Goods', [t('offerings','Animal goods', plural(D.animalGoods.length,'product'), {r:'catalog', gc:'animalGoods'}), t('recipes','Artisan goods', plural(D.artisan.length,'product'), {r:'catalog', gc:'artisan'}), t('recipes','Cooked dishes', plural(D.recipes.length,'recipe'), {r:'recipes'})]],
+    ['Minerals & finds', [t('gem','Gems', cnt2('gems') + ' donated', {r:'museum', c:'gems'}), t('bone','Fossils', cnt2('fossils') + ' donated', {r:'museum', c:'fossils'}), t('scroll','Artifacts', cnt2('artifacts') + ' donated', {r:'museum', c:'artifacts'}), t('gem','Geodes', plural(D.geodes.length,'geode'), {r:'catalog', gc:'geodes'}), t('bug','Monster drops', plural(D.drops.length,'item'), {r:'catalog', gc:'drops'}), t('farm','Resources', plural(D.resources.length,'resource'), {r:'catalog', gc:'resources'})]],
+    ['Farm & forage', [t('farm','Crops & plants', plural(D.crops.length,'plant'), {r:'catalog', gc:'crops'}), t('farm','Seeds & saplings', plural(D.seeds.length,'listing'), {r:'catalog', gc:'seeds'}), t('recipes','Foraged items', plural(D.foraged.length,'item'), {r:'catalog', gc:'foraged'}), t('farm','Ocean seed mixing', plural(D.oceanSeeds.length,'seed'), {r:'catalog', gc:'oceanSeeds'})]],
+    ['Goods', [t('offerings','Animal goods', plural(D.animalGoods.length,'product'), {r:'catalog', gc:'animalGoods'}), t('recipes','Artisan goods', plural(D.artisan.length,'product'), {r:'catalog', gc:'artisan'}), t('recipes','Cooked dishes', plural(D.recipes.length,'recipe'), {r:'recipes'}), t('farm','Crafting recipes', plural(D.crafting.length,'recipe'), {r:'catalog', gc:'crafting'}), t('tips','Consumables', 'Baits, traps, bombs…', {r:'catalog', gc:'crafting', gf:'Consumables'})]],
     ['Shops & upgrades', [t('recipes','Shops', plural(D.shops.length,'shop') + ' · hours and stock', {r:'shops'}), t('farm','Upgrades & buildings', upgBuilt() + '/' + D.upgrades.length + ' built', {r:'upgrades', ug:'All'}), t('offerings','Farm animals', plural(D.animals.length,'animal'), {r:'catalog', gc:'animals'})]],
     ['Town & progress', [t('offerings','Offerings', 'Lake Temple altars', {r:'offerings'}), t('scroll','Shipping log', shipTotal() + '/' + shipMax() + ' shipped', {r:'progress', pt:'shipped'}), t('quests','Quests', plural(D.quests.length,'quest'), {r:'quests'}), t('farm','Tools & skills', 'Upgrades, masteries, town rank', {r:'farm'}), t('tips','Tips', plural(TIPS.length,'tip'), {r:'tips'})]]
   ];
@@ -309,6 +309,48 @@ const CATALOG = {
     sub: it => [it.a, 'sells ' + it.p, it.d ? 'every ' + it.d + ' day' + (it.d === '1' ? '' : 's') : ''].filter(Boolean).join(' · '),
     detail: it => [['Animal', it.a], ['Sell price', it.p], it.d ? ['Produced every', it.d + ' day(s)'] : null, ['Size', it.big ? 'Large' : 'Regular']]
   },
+  monsters: {
+    label: 'Monsters', seasonal: false, note: 'Enemies of the mines and caves, with their stats and what they can drop.',
+    items: () => D.monsters, groupOf: it => it.k, groups: null,
+    sub: it => [it.v && it.v !== 'Base' ? it.v : '', it.loc, it.hp ? it.hp + ' HP' : ''].filter(Boolean).join(' · '),
+    detail: it => [['Type', it.k + (it.v ? ' (' + it.v + ')' : '')], ['Found in', it.loc], ['Health', it.hp], ['Attack', it.atk], ['Defense', it.def], ['Experience', it.exp], it.loot.length ? ['Drops', it.loot.map(l => l.n + ' ' + l.c).join(' · ')] : null]
+  },
+  drops: {
+    label: 'Monster drops', seasonal: false, note: 'Every item monsters can drop, with the monsters that drop it and the chance.',
+    items: () => D.drops, groupOf: () => 'Drop', groups: null,
+    sub: it => 'From ' + it.from.slice(0, 3).map(f => f.m + ' ' + f.c).join(', ') + (it.from.length > 3 ? '…' : ''),
+    detail: it => it.from.map(f => [f.m, f.c])
+  },
+  geodes: {
+    label: 'Geodes', seasonal: false, note: 'Crack them open at the blacksmith to find gems, ore and stone.',
+    items: () => D.geodes, groupOf: it => it.gems || 'Mixed', groups: null,
+    sub: it => it.src,
+    detail: it => [['Where to get it', it.src], it.gems ? ['Gems', 'all ' + D.gems.filter(g => g.g === it.gems).length + ' ' + it.gems.toLowerCase() + ' gems'] : ['Gems', 'any of the ' + D.gems.length + ' gems'], it.drops.length ? ['Can contain', it.drops.join(', ')] : null, it.other.length ? ['Also', it.other.join(', ')] : null]
+  },
+  resources: {
+    label: 'Resources', seasonal: false, note: 'Ores, bars, kelp, essences and building materials, with sell price and where to get them.',
+    items: () => D.resources, groupOf: it => it.g, groups: null,
+    sub: it => ['sells ' + fmtNum(it.p), it.buy.length ? 'buy at ' + it.buy[0].w + ' (' + fmtNum(it.buy[0].p) + ')' : '', it.found.length ? 'found in ' + it.found[0].w : ''].filter(Boolean).join(' · '),
+    detail: it => [['Sell price', fmtNum(it.p)], it.buy.length ? ['Buy', it.buy.map(b => b.w + ' ' + fmtNum(b.p)).join(' · ')] : null, it.found.length ? ['Found in', it.found.map(f => f.w + ' ' + f.c).join(' · ')] : null]
+  },
+  oceanSeeds: {
+    label: 'Ocean seed mixing', seasonal: false, note: 'Underwater crops have no season. Each seed is made from a kelp and a scavenged item found at a given depth.',
+    items: () => D.oceanSeeds, groupOf: it => it.kelp, groups: null,
+    sub: it => [it.kelp, it.scav + (it.depth ? ' (' + it.depth + ')' : ''), 'crop: ' + it.land + (it.lands ? ' (' + it.lands + ')' : '')].join(' · '),
+    detail: it => [['Kelp', it.kelp], ['Scavengeable', it.scav], ['Depth', it.depth], ['Crop used', it.land + (it.lands ? ' (' + it.lands + ')' : '')], it.growth ? ['Grows in', it.growth.g] : null, it.growth && it.growth.r ? ['Regrows every', it.growth.r] : null, it.growth && it.growth.n ? ['Harvests', it.growth.n] : null]
+  },
+  extras: {
+    label: 'Extras', seasonal: false, note: 'Minor characters you may meet around the island.',
+    items: () => D.extras, groupOf: () => 'Character', groups: null,
+    sub: it => short(it.d, 110),
+    detail: it => [['About', it.d]]
+  },
+  crafting: {
+    label: 'Crafting recipes', seasonal: false, note: 'Everything you can craft, including consumables, baits, traps and bombs, with ingredients and what unlocks it.',
+    items: () => D.crafting, groupOf: it => it.g, groups: null,
+    sub: it => [it.i, it.u ? 'unlock: ' + it.u : ''].filter(Boolean).join(' · '),
+    detail: it => [['Group', it.g], ['Ingredients', it.i], it.u ? ['Unlocked by', it.u] : null, it.pr ? ['Produces', it.pr] : null]
+  },
   animals: {
     label: 'Farm animals', seasonal: false, note: 'Every animal you can keep, where it lives, what it produces and what it costs at the Ranch.',
     items: () => D.animals, groupOf: it => it.h, groups: null,
@@ -331,7 +373,7 @@ function catalogView(){
   arr = arr.slice().sort(byName);
   const cap = ui.gmore ? 5000 : 120, shown = arr.slice(0, cap);
   let h = `<section><div class="h-row"><h2>${esc(cfg.label)}</h2><span class="aside num">${all.length}</span></div><p class="lead">${esc(cfg.note)}</p></section>`;
-  h += `<div class="tabs" role="tablist"><button class="chip" data-act="gf" data-g="All" aria-pressed="${ui.gf === 'All'}">All<small class="num">${all.length}</small></button>${groups.map(g => `<button class="chip" data-act="gf" data-g="${esc(g)}" aria-pressed="${ui.gf === g}">${esc(g)}<small class="num">${all.filter(it => cfg.groupOf(it) === g).length}</small></button>`).join('')}</div>`;
+  if(groups.length > 1) h += `<div class="tabs" role="tablist"><button class="chip" data-act="gf" data-g="All" aria-pressed="${ui.gf === 'All'}">All<small class="num">${all.length}</small></button>${groups.map(g => `<button class="chip" data-act="gf" data-g="${esc(g)}" aria-pressed="${ui.gf === g}">${esc(g)}<small class="num">${all.filter(it => cfg.groupOf(it) === g).length}</small></button>`).join('')}</div>`;
   h += `<div class="toolbar"><input type="search" id="q" placeholder="Search ${esc(cfg.label.toLowerCase())}" value="${esc(ui.q)}" aria-label="Search">${cfg.seasonal ? `<div class="r"><button class="chip" data-act="gs" aria-pressed="${ui.gs}">In season now (${SEAS[s]})</button></div>` : ''}</div>`;
   h += `<p class="small muted">${arr.length} shown</p>`;
   h += shown.length ? `<ul class="list">${shown.map(it => {
@@ -459,4 +501,59 @@ function upgradesView(){
       ${u.mats.length ? `<div class="chips mats">${u.mats.map((m, i) => { const st = matHave(u, i); return `<button class="chip ${st ? 'on' : ''}" data-act="ugm" data-id="${u.id}" data-i="${i}" aria-pressed="${!!st}" ${st === 'base' || st === 'built' ? 'disabled' : ''}>${esc(m.n)}<small>×${fmtNum(m.q)}${st === 'base' ? ' · you have it' : st === 'built' ? ' · built' : ''}</small></button>`; }).join('')}</div>` : ''}</div></li>`;
   }).join('') + `</ul>`;
   return h;
+}
+
+/* ---------- villager details: schedule, heart events, hangouts (data in people.js) ---------- */
+// A schedule label looks like "Monday, Thursday, Friday", "Monday - Friday", "Summer; Wednesday" or "All days".
+function labelMatch(label, dayIdx, season){
+  let seasonOk = null, dayOk = null;
+  const di = n => DOWL.findIndex(d => d.toLowerCase().startsWith(String(n).slice(0, 3).toLowerCase()));
+  String(label).split(/[;,]/).map(x => x.trim()).filter(Boolean).forEach(tok => {
+    if(/^all days$/i.test(tok)){ dayOk = true; return; }
+    const si = SEAS.findIndex(s => s.toLowerCase() === tok.toLowerCase());
+    if(si >= 0){ seasonOk = (seasonOk || false) || si === season; return; }
+    const rng = /^(\w+)\s*[-–]\s*(\w+)$/.exec(tok);
+    if(rng && di(rng[1]) >= 0 && di(rng[2]) >= 0){
+      const a = di(rng[1]), b = di(rng[2]);
+      dayOk = (dayOk || false) || (a <= b ? (dayIdx >= a && dayIdx <= b) : (dayIdx >= a || dayIdx <= b));
+      return;
+    }
+    const d = di(tok);
+    if(d >= 0) dayOk = (dayOk || false) || d === dayIdx;
+  });
+  return {seasonOk, dayOk};
+}
+function pickSchedule(p){
+  if(!p.sched || !p.sched.length) return null;
+  const day = dowOf(S.date.d), season = S.date.s;
+  const rainy = ['Rain', 'Storm', 'Snow', 'Blizzard'].includes(S.weather);
+  const fits = x => { const m = labelMatch(x.l, day, season); return m.dayOk === null || m.dayOk; };
+  if(rainy){ const r = p.sched.filter(x => /rain|snow/i.test(x.g)); if(r.length) return r.find(fits) || r[0]; }
+  const sea = p.sched.filter(x => /season/i.test(x.g)).filter(x => { const m = labelMatch(x.l, day, season); return m.seasonOk === true && (m.dayOk === null || m.dayOk); });
+  if(sea.length) return sea[0];
+  const reg = p.sched.filter(x => !/rain|snow|season/i.test(x.g));
+  return reg.find(x => labelMatch(x.l, day, season).dayOk === true) || reg.find(fits) || reg[0] || p.sched[0];
+}
+function personDetails(v){
+  const p = typeof P !== 'undefined' ? P[v.id] : null;
+  if(!p) return '';
+  const open = !!ui.open['pd:' + v.id];
+  let h = `<button class="btn sm pd-btn" data-act="open" data-k="pd:${v.id}" aria-expanded="${open}">${open ? 'Hide details' : 'Details, events and schedule'}</button>`;
+  if(!open) return h;
+  const hr = heartsOf(v);
+  const info = [p.type, p.gender, p.job, p.home ? 'lives at ' + p.home : '', p.fun ? 'enjoys: ' + p.fun : ''].filter(Boolean).map(esc).join(' · ');
+  const sch = pickSchedule(p), allOpen = !!ui.open['ps:' + v.id];
+  const rows = r => `<ul class="sl sched">${r.map(([t, a]) => `<li><span class="sn num">${esc(t)}</span><span class="sx">${esc(a)}</span></li>`).join('')}</ul>`;
+  h += `<div class="pd">${info ? `<p class="small">${info}</p>` : ''}${p.about ? `<p class="small muted">${esc(p.about)}</p>` : ''}`;
+  if(sch){
+    h += `<h4 class="pd-h">Schedule for ${DOWL[dowOf(S.date.d)]}, ${SEAS[S.date.s]}${['Rain','Storm','Snow','Blizzard'].includes(S.weather) ? ', bad weather' : ''}</h4><p class="small muted">${esc(sch.g)} · ${esc(sch.l)}</p>${rows(sch.r)}`;
+    if(p.sched.length > 1) h += `<button class="link" data-act="open" data-k="ps:${v.id}">${allOpen ? 'Hide the other schedules' : 'Show all ' + p.sched.length + ' schedules'}</button>`;
+    if(allOpen) h += p.sched.map(x => `<h4 class="pd-h">${esc(x.g)} · ${esc(x.l)}</h4>${rows(x.r)}`).join('');
+  }
+  if(p.events.length){
+    const next = p.events.find(e => e.h > hr);
+    h += `<h4 class="pd-h">Heart events${next ? ` · next at ♥${next.h}` : ' · all unlocked'}</h4><ul class="evl">${p.events.map(e => `<li class="${e.h <= hr ? 'seen' : ''}"><b class="num">♥${e.h}</b> <span class="small muted">${esc([e.d, e.l].filter(Boolean).join(' · '))}</span><div>${esc(e.s)}</div></li>`).join('')}</ul>`;
+  }
+  if(p.hang.length) h += `<h4 class="pd-h">Hangouts</h4><ul class="evl">${p.hang.map(e => `<li class="${e.h <= hr ? 'seen' : ''}"><b class="num">♥${e.h}</b> <span class="small muted">${esc(e.q && e.q !== 'None' ? e.q : '')}</span><div>${esc(e.s)}</div></li>`).join('')}</ul>`;
+  return h + `</div>`;
 }

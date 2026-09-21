@@ -50,13 +50,12 @@ function withCarry(rows, width, keyCol = 0) {
   });
   addPlant(fpT[2], 'Fruit plant');
   addPlant(ftT[3], 'Fruit tree');
-  // ocean crops: season comes from the seed-mixing table
-  const ocSeason = {};
-  ocT[0].slice(1).forEach(c => { ocSeason[(c[1] || '').replace(/\s+seeds$/i, '').toLowerCase()] = c[4]; });
+  // ocean crops
+
   ocT[3].slice(1).forEach(c => {
     const n = c[1]; if (!n) return;
-    const sea = seasons(ocSeason[n.toLowerCase()]);
-    D.crops.push({ id: slug(n) + '-ocean', n, t: c[2], s: ocSeason[n.toLowerCase()] ? sea.s : [1, 1, 1, 1], g: clean(c[4]), seed: num(c[5]), p: num(c[6]), max: num(c[7]), ppd: parseFloat((c[8] || '').replace(/Base:/, '').match(/[\d.]+/) || [0])[0], k: 'Ocean crop', rank: c[3] });
+    // "Ocean crops have no season: they can be planted any time of the year." (wiki, Ocean Seed Mixing)
+    D.crops.push({ id: slug(n) + '-ocean', n, t: c[2], s: [1, 1, 1, 1], g: clean(c[4]), seed: num(c[5]), p: num(c[6]), max: num(c[7]), ppd: parseFloat((c[8] || '').replace(/Base:/, '').match(/[\d.]+/) || [0])[0], k: 'Ocean crop', rank: c[3] });
   });
   D.crops.filter(c => !c.rank).forEach(c => { c.rank = ''; });
 

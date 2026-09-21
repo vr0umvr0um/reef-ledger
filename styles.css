@@ -320,3 +320,16 @@ a.link{font-weight:600}
 .need{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .need .chip{font-size:12px;min-height:30px;padding:4px 10px}
 .list>li.grp{border-top:1px solid var(--line)}
+
+/* villager details */
+.pd-btn{align-self:flex-start}
+.pd{margin-top:2px;padding:12px;background:var(--surface2);border-radius:12px}
+.pd p{margin:0 0 8px}
+.pd-h{font:700 12px var(--body);text-transform:uppercase;letter-spacing:.07em;color:var(--ink2);margin:14px 0 6px}
+.sl.sched li{grid-template-columns:52px 1fr}
+.sl.sched .sx{grid-column:auto;font-size:14px;color:var(--ink)}
+.evl{list-style:none;margin:0;padding:0}
+.evl li{padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.evl li:first-child{border-top:0}
+.evl li.seen{opacity:.6}
+.evl li.seen b::after{content:" ✓"}
