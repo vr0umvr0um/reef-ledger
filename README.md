@@ -17,7 +17,8 @@ Barre de contexte permanente (date, heure, météo) et 5 onglets :
   boutiques (30, horaires, jours d'ouverture et stock de 14 d'entre elles), améliorations et bâtiments (80, avec
   matériaux à cocher et liste de courses), animaux d'élevage (17), monstres (23) et leurs butins, géodes, ressources (32),
   mélange de graines océaniques (15), personnages secondaires (75), recettes d'artisanat et consommables (147), fiches
-  détaillées des villageois (horaires du jour, événements de cœur, hangouts), offrandes, quêtes, outils et compétences, conseils.
+  détaillées des villageois (horaires du jour, événements de cœur, hangouts), équipement (34 armes, 23 bagues,
+  439 vêtements) et décoration (797 meubles), offrandes, quêtes, outils et compétences, conseils.
 - **Progress** : vue d'ensemble, liste du musée par section (avec « Select all »), **suivi d'expédition**
   (862 objets : poissons, insectes, créatures, gemmes, cultures, plantes sauvages, produits d'élevage et artisanaux),
   offrandes du temple.

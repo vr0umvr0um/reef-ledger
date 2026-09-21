@@ -3,7 +3,7 @@
 
 const WEATHERS = ['Sunny','Windy','Rain','Storm','Snow','Blizzard'];
 const WX_LABEL = {Sunny:'Sunny', Windy:'Windy', Rain:'Rainy', Storm:'Stormy', Snow:'Snowy', Blizzard:'Blizzard'};
-const TYPE_LABEL = {fish:'Fish', insects:'Insect', critters:'Critter', fossils:'Fossil', artifacts:'Artifact', gems:'Gem', crops:'Crop', recipes:'Recipe', people:'Villager', quests:'Quest', seeds:'Seed', foraged:'Foraged', animalGoods:'Animal good', artisan:'Artisan good', animals:'Farm animal', upgrades:'Upgrade', shops:'Shop', stock:'For sale', monsters:'Monster', drops:'Monster drop', geodes:'Geode', resources:'Resource', oceanSeeds:'Ocean seed', extras:'Extra character', crafting:'Crafting recipe'};
+const TYPE_LABEL = {fish:'Fish', insects:'Insect', critters:'Critter', fossils:'Fossil', artifacts:'Artifact', gems:'Gem', crops:'Crop', recipes:'Recipe', people:'Villager', quests:'Quest', seeds:'Seed', foraged:'Foraged', animalGoods:'Animal good', artisan:'Artisan good', animals:'Farm animal', upgrades:'Upgrade', shops:'Shop', stock:'For sale', monsters:'Monster', drops:'Monster drop', geodes:'Geode', resources:'Resource', oceanSeeds:'Ocean seed', extras:'Extra character', crafting:'Crafting recipe', weapons:'Weapon', rings:'Ring', clothing:'Clothing', furniture:'Furniture'};
 
 /* ---------- favourites and recent ---------- */
 const isFav = (c, id) => !!S.fav[c + ':' + id];
@@ -234,7 +234,7 @@ function progressHub(){
 /* ---------- field guide hub and global search ---------- */
 function guideSearch(q){
   const s = q.toLowerCase(), out = [];
-  ['fish','insects','critters','fossils','artifacts','gems','crops','seeds','foraged','animalGoods','artisan','monsters','drops','geodes','resources','oceanSeeds','extras','crafting','recipes'].forEach(c => D[c].forEach(it => { if(it.n.toLowerCase().includes(s)) out.push({t:c, n:it.n, id:it.id}); }));
+  ['fish','insects','critters','fossils','artifacts','gems','crops','seeds','foraged','animalGoods','artisan','monsters','drops','geodes','resources','oceanSeeds','extras','crafting','weapons','rings','clothing','furniture','recipes'].forEach(c => D[c].forEach(it => { if(it.n.toLowerCase().includes(s)) out.push({t:c, n:it.n, id:it.id}); }));
   D.villagers.forEach(v => { if(v.n.toLowerCase().includes(s)) out.push({t:'people', n:v.n, id:v.id}); });
   D.quests.forEach(x => { if(x.n.toLowerCase().includes(s)) out.push({t:'quests', n:x.n, id:x.id}); });
   D.animals.forEach(x => { if(x.n.toLowerCase().includes(s)) out.push({t:'animals', n:x.n, id:x.id}); });
@@ -269,6 +269,7 @@ function guideView(){
     ['Minerals & finds', [t('gem','Gems', cnt2('gems') + ' donated', {r:'museum', c:'gems'}), t('bone','Fossils', cnt2('fossils') + ' donated', {r:'museum', c:'fossils'}), t('scroll','Artifacts', cnt2('artifacts') + ' donated', {r:'museum', c:'artifacts'}), t('gem','Geodes', plural(D.geodes.length,'geode'), {r:'catalog', gc:'geodes'}), t('bug','Monster drops', plural(D.drops.length,'item'), {r:'catalog', gc:'drops'}), t('farm','Resources', plural(D.resources.length,'resource'), {r:'catalog', gc:'resources'})]],
     ['Farm & forage', [t('farm','Crops & plants', plural(D.crops.length,'plant'), {r:'catalog', gc:'crops'}), t('farm','Seeds & saplings', plural(D.seeds.length,'listing'), {r:'catalog', gc:'seeds'}), t('recipes','Foraged items', plural(D.foraged.length,'item'), {r:'catalog', gc:'foraged'}), t('farm','Ocean seed mixing', plural(D.oceanSeeds.length,'seed'), {r:'catalog', gc:'oceanSeeds'})]],
     ['Goods', [t('offerings','Animal goods', plural(D.animalGoods.length,'product'), {r:'catalog', gc:'animalGoods'}), t('recipes','Artisan goods', plural(D.artisan.length,'product'), {r:'catalog', gc:'artisan'}), t('recipes','Cooked dishes', plural(D.recipes.length,'recipe'), {r:'recipes'}), t('farm','Crafting recipes', plural(D.crafting.length,'recipe'), {r:'catalog', gc:'crafting'}), t('tips','Consumables', 'Baits, traps, bombs…', {r:'catalog', gc:'crafting', gf:'Consumables'})]],
+    ['Gear & home', [t('bug','Weapons', plural(D.weapons.length,'weapon'), {r:'catalog', gc:'weapons'}), t('gem','Rings', plural(D.rings.length,'ring'), {r:'catalog', gc:'rings'}), t('people','Clothing', plural(D.clothing.length,'piece'), {r:'catalog', gc:'clothing'}), t('offerings','Furniture & decor', plural(D.furniture.length,'item'), {r:'catalog', gc:'furniture'})]],
     ['Shops & upgrades', [t('recipes','Shops', plural(D.shops.length,'shop') + ' · hours and stock', {r:'shops'}), t('farm','Upgrades & buildings', upgBuilt() + '/' + D.upgrades.length + ' built', {r:'upgrades', ug:'All'}), t('offerings','Farm animals', plural(D.animals.length,'animal'), {r:'catalog', gc:'animals'})]],
     ['Town & progress', [t('offerings','Offerings', 'Lake Temple altars', {r:'offerings'}), t('scroll','Shipping log', shipTotal() + '/' + shipMax() + ' shipped', {r:'progress', pt:'shipped'}), t('quests','Quests', plural(D.quests.length,'quest'), {r:'quests'}), t('farm','Tools & skills', 'Upgrades, masteries, town rank', {r:'farm'}), t('tips','Tips', plural(TIPS.length,'tip'), {r:'tips'})]]
   ];
@@ -351,6 +352,32 @@ const CATALOG = {
     sub: it => [it.i, it.u ? 'unlock: ' + it.u : ''].filter(Boolean).join(' · '),
     detail: it => [['Group', it.g], ['Ingredients', it.i], it.u ? ['Unlocked by', it.u] : null, it.pr ? ['Produces', it.pr] : null]
   },
+  weapons: {
+    label: 'Weapons', seasonal: false, note: 'Swords, shields, spears and hammers with their stats and where to get them.',
+    items: () => D.weapons, groupOf: it => it.k, groups: ['Sword','Shield','Spear','Hammer'],
+    sort: (a, b) => a.dmg - b.dmg || a.n.localeCompare(b.n),
+    sub: it => [it.dmg + ' damage', it.def ? it.def + ' defense' : '', it.src + (it.p ? ' (' + fmtNum(it.p) + ')' : '')].filter(Boolean).join(' · '),
+    detail: it => [['Type', it.k], ['Damage', it.dmg], ['Defense', it.def], ['Crit. damage', it.cd], ['Crit. chance', it.cc], it.ch ? ['Charge', it.ch] : null, ['Where', it.src], it.p ? ['Price', fmtNum(it.p)] : null, it.desc ? ['About', it.desc] : null]
+  },
+  rings: {
+    label: 'Rings', seasonal: false, note: 'Equipment rings, what they do and how to obtain them.',
+    items: () => D.rings, groupOf: () => 'Ring', groups: null,
+    sub: it => it.e || (it.how[0] || ''),
+    detail: it => [['Effect', it.e], it.p ? ['Sell price', fmtNum(it.p)] : null, ...it.how.map((h, i) => [i === 0 ? 'How to get' : '', h])]
+  },
+  furniture: {
+    label: 'Furniture & decor', seasonal: false, note: 'Everything sold at the Furniture Store and the Pufferfish Shop. Pick a style, or search for a type such as wall, table, plant, lighting, indoor or outdoor.',
+    items: () => D.furniture, groupOf: it => it.st, groups: null,
+    searchText: it => it.t + ' ' + it.o + ' ' + it.st,
+    sub: it => [it.t, it.o, it.sz && it.sz !== '-' ? it.sz : '', it.p ? fmtNum(it.p) : '', it.r ? 'rank ' + it.r : ''].filter(Boolean).join(' · '),
+    detail: it => [['Style', it.st], ['Type', it.t], ['Placed', it.o], it.sz && it.sz !== '-' ? ['Size', it.sz] : null, ['Price', fmtNum(it.p)], it.r ? ['Town rank', it.r] : null, ['Sold at', it.w]]
+  },
+  clothing: {
+    label: 'Clothing', seasonal: false, note: 'Outfits, tops, bottoms, shoes, hats, glasses, backpacks and mermaid tails. Items from “Other sources” are rewards, events or gifts.',
+    items: () => D.clothing, groupOf: it => it.k, groups: ['Outfit','Top','Bottom','Footwear','Hat','Glasses','Backpack','Tail','Other'],
+    sub: it => [it.w, it.p ? fmtNum(it.p) : '', it.r ? 'rank ' + it.r : ''].filter(Boolean).join(' · '),
+    detail: it => [['Type', it.k], ['Sold at', it.w], it.p ? ['Price', fmtNum(it.p)] : null, it.r ? ['Town rank', it.r] : null]
+  },
   animals: {
     label: 'Farm animals', seasonal: false, note: 'Every animal you can keep, where it lives, what it produces and what it costs at the Ranch.',
     items: () => D.animals, groupOf: it => it.h, groups: null,
@@ -369,8 +396,8 @@ function catalogView(){
   const s = S.date.s, q = (ui.q || '').toLowerCase();
   const all = cfg.items();
   const groups = cfg.groups || uniqSorted(all.map(cfg.groupOf));
-  let arr = all.filter(it => (ui.gf === 'All' || cfg.groupOf(it) === ui.gf) && (!ui.gs || !cfg.seasonal || it.s[s]) && (!q || it.n.toLowerCase().includes(q)));
-  arr = arr.slice().sort(byName);
+  let arr = all.filter(it => (ui.gf === 'All' || cfg.groupOf(it) === ui.gf) && (!ui.gs || !cfg.seasonal || it.s[s]) && (!q || it.n.toLowerCase().includes(q) || (cfg.searchText && cfg.searchText(it).toLowerCase().includes(q))));
+  arr = arr.slice().sort(cfg.sort || byName);
   const cap = ui.gmore ? 5000 : 120, shown = arr.slice(0, cap);
   let h = `<section><div class="h-row"><h2>${esc(cfg.label)}</h2><span class="aside num">${all.length}</span></div><p class="lead">${esc(cfg.note)}</p></section>`;
   if(groups.length > 1) h += `<div class="tabs" role="tablist"><button class="chip" data-act="gf" data-g="All" aria-pressed="${ui.gf === 'All'}">All<small class="num">${all.length}</small></button>${groups.map(g => `<button class="chip" data-act="gf" data-g="${esc(g)}" aria-pressed="${ui.gf === g}">${esc(g)}<small class="num">${all.filter(it => cfg.groupOf(it) === g).length}</small></button>`).join('')}</div>`;
