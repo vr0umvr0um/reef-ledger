@@ -226,8 +226,8 @@ function museumChecklist(){
   return h;
 }
 function progressHub(){
-  const tabs = [['overview','Overview'],['museum','Museum'],['offerings','Offerings']];
-  const body = ui.pt === 'museum' ? museumChecklist() : ui.pt === 'offerings' ? offeringsView() : progressView();
+  const tabs = [['overview','Overview'],['museum','Museum'],['shipped','Shipped'],['offerings','Offerings']];
+  const body = ui.pt === 'museum' ? museumChecklist() : ui.pt === 'shipped' ? shippedView() : ui.pt === 'offerings' ? offeringsView() : progressView();
   return `<div class="tabs" role="tablist">${tabs.map(([k,l]) => `<button class="chip" role="tab" data-act="pt" data-k="${k}" aria-pressed="${ui.pt === k}">${l}</button>`).join('')}</div>` + body;
 }
 
@@ -263,7 +263,7 @@ function guideView(){
     ['Minerals & finds', [t('gem','Gems', cnt2('gems') + ' donated', {r:'museum', c:'gems'}), t('bone','Fossils', cnt2('fossils') + ' donated', {r:'museum', c:'fossils'}), t('scroll','Artifacts', cnt2('artifacts') + ' donated', {r:'museum', c:'artifacts'})]],
     ['Farm & forage', [t('farm','Crops & plants', plural(D.crops.length,'plant'), {r:'catalog', gc:'crops'}), t('farm','Seeds & saplings', plural(D.seeds.length,'listing'), {r:'catalog', gc:'seeds'}), t('recipes','Foraged items', plural(D.foraged.length,'item'), {r:'catalog', gc:'foraged'})]],
     ['Goods', [t('offerings','Animal goods', plural(D.animalGoods.length,'product'), {r:'catalog', gc:'animalGoods'}), t('recipes','Artisan goods', plural(D.artisan.length,'product'), {r:'catalog', gc:'artisan'}), t('recipes','Cooked dishes', plural(D.recipes.length,'recipe'), {r:'recipes'})]],
-    ['Town & progress', [t('offerings','Offerings', 'Lake Temple altars', {r:'offerings'}), t('quests','Quests', plural(D.quests.length,'quest'), {r:'quests'}), t('farm','Tools & skills', 'Upgrades, masteries, town rank', {r:'farm'}), t('tips','Tips', plural(TIPS.length,'tip'), {r:'tips'})]]
+    ['Town & progress', [t('offerings','Offerings', 'Lake Temple altars', {r:'offerings'}), t('scroll','Shipping log', shipTotal() + '/' + shipMax() + ' shipped', {r:'progress', pt:'shipped'}), t('quests','Quests', plural(D.quests.length,'quest'), {r:'quests'}), t('farm','Tools & skills', 'Upgrades, masteries, town rank', {r:'farm'}), t('tips','Tips', plural(TIPS.length,'tip'), {r:'tips'})]]
   ];
   return h + groups.map(([g, tiles]) => `<section><div class="h-row"><h2>${g}</h2></div><div class="tiles">${tiles.join('')}</div></section>`).join('');
 }
@@ -324,7 +324,39 @@ function catalogView(){
   h += shown.length ? `<ul class="list">${shown.map(it => {
     const open = !!ui.open[c + ':' + it.id];
     const det = open ? `<dl class="det">${cfg.detail(it).filter(Boolean).map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : '';
-    return `<li class="it"><div class="it-main" role="button" tabindex="0" aria-expanded="${open}" data-act="open" data-k="${c}:${it.id}"><div class="it-t"><span class="nm">${esc(it.n)}</span>${cfg.seasonal ? seasonChips(it) : ''}<em class="tag">${esc(cfg.groupOf(it))}</em></div><div class="it-s">${esc(cfg.sub(it))}</div>${det}</div>${heartBtn(c, it.id, it.n)}</li>`;
+    return `<li class="it"><div class="it-main" role="button" tabindex="0" aria-expanded="${open}" data-act="open" data-k="${c}:${it.id}"><div class="it-t"><span class="nm">${esc(it.n)}</span>${cfg.seasonal ? seasonChips(it) : ''}<em class="tag">${esc(cfg.groupOf(it))}</em>${isShipped(c, it.id) ? '<em class="tag kelp">Shipped</em>' : ''}</div><div class="it-s">${esc(cfg.sub(it))}</div>${det}</div>${heartBtn(c, it.id, it.n)}</li>`;
   }).join('')}</ul>${arr.length > cap ? `<div style="margin-top:10px"><button class="btn" data-act="gmore">Show all ${arr.length}</button></div>` : ''}` : `<div class="empty">Nothing matches these filters.</div>`;
+  return h;
+}
+
+/* ---------- shipping log: what you have sold at least once ---------- */
+const SHIP_CATS = [['fish','Fish'],['insects','Insects'],['critters','Ocean critters'],['gems','Gems'],['crops','Crops & plants'],['foraged','Foraged items'],['animalGoods','Animal goods'],['artisan','Artisan goods']];
+const shipKey = (c, id) => c + ':' + id;
+const isShipped = (c, id) => !!(S.ship && S.ship[shipKey(c, id)]);
+const shipCount = c => D[c].filter(it => isShipped(c, it.id)).length;
+const shipTotal = () => SHIP_CATS.reduce((a, [c]) => a + shipCount(c), 0);
+const shipMax = () => SHIP_CATS.reduce((a, [c]) => a + D[c].length, 0);
+function shipList(c){
+  const q = (ui.sq || '').toLowerCase();
+  let list = D[c].slice();
+  if(CRIT3.includes(c)) list.sort((a, b) => a.o - b.o); else list.sort(byName);
+  if(q) list = list.filter(it => it.n.toLowerCase().includes(q));
+  if(ui.shipMiss) list = list.filter(it => !isShipped(c, it.id));
+  return list;
+}
+const shipSub = (c, it) => CATALOG[c] ? CATALOG[c].groupOf(it) : 'sells ' + it.p;
+function shippedView(){
+  const total = shipTotal(), max = shipMax(), q = (ui.sq || '').trim();
+  let h = `<section><div class="h-row"><h2>Shipping log</h2><span class="aside num">${total}/${max} shipped</span></div>${bar(total, max, 'kelp')}<p class="lead">Tick what you have sold at least once. Open a category to see its items.</p></section>
+    <div class="toolbar"><input type="search" id="sq" placeholder="Search everything you can ship" value="${esc(ui.sq)}" aria-label="Search shippable items"><div class="r"><button class="chip" data-act="shpmiss" aria-pressed="${ui.shipMiss}">Not shipped yet</button></div></div>`;
+  SHIP_CATS.forEach(([c, l]) => {
+    const list = shipList(c);
+    if((q || ui.shipMiss) && !list.length) return;
+    const have = shipCount(c), n = D[c].length, open = !!q || !!ui.shipExp[c], filtered = !!q || ui.shipMiss;
+    const allShown = list.length > 0 && list.every(it => isShipped(c, it.id));
+    const cap = ui.shipAll[c] ? 5000 : 150;
+    h += `<section class="pc"><div class="pc-h"><button class="pc-t" data-act="shpexp" data-c="${c}" aria-expanded="${open}"><b>${l}</b><span class="num muted">${have}/${n}</span><i class="caret" aria-hidden="true">${open ? '▾' : '▸'}</i></button><button class="btn sm" data-act="shpsel" data-c="${c}" data-m="${allShown ? 'off' : 'on'}">${allShown ? 'Clear' : 'Select'} ${filtered ? 'shown' : 'all'}</button></div>${bar(have, n, 'kelp')}` +
+      (open ? `<ul class="list compact">${list.slice(0, cap).map(it => `<li class="it ${isShipped(c, it.id) ? 'done' : ''}"><button class="chk" data-act="shp" data-c="${c}" data-id="${it.id}" aria-pressed="${isShipped(c, it.id)}" aria-label="Shipped: ${esc(it.n)}"></button><div class="it-main"><div class="it-t"><span class="nm">${esc(it.n)}</span><em class="tag">${esc(shipSub(c, it))}</em></div></div></li>`).join('')}</ul>${list.length > cap ? `<button class="btn sm" data-act="shpall" data-c="${c}">Show all ${list.length}</button>` : ''}` : '') + `</section>`;
+  });
   return h;
 }

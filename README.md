@@ -15,7 +15,9 @@ Barre de contexte permanente (date, heure, météo) et 5 onglets :
   gemmes, fossiles, artefacts, cultures et plantes (89), graines et plants (95), plantes sauvages (83),
   produits d'élevage (42), produits artisanaux (446), plats cuisinés (107, avec énergie et santé),
   offrandes, quêtes, outils et compétences, conseils.
-- **Progress** : vue d'ensemble, liste du musée par section (avec « Select all »), offrandes du temple.
+- **Progress** : vue d'ensemble, liste du musée par section (avec « Select all »), **suivi d'expédition**
+  (862 objets : poissons, insectes, créatures, gemmes, cultures, plantes sauvages, produits d'élevage et artisanaux),
+  offrandes du temple.
 - **Settings** : installation, thème, sauvegarde et restauration.
 
 ## Mettre l'appli en ligne (nécessaire pour l'installer sur téléphone)

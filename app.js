@@ -75,8 +75,8 @@ const untilBirthday = b => { const t = absDay(S.date)%112, x = b[0]*28+b[1]-1; r
    ========================================================= */
 const def = () => ({v:1, ts:0, date:{y:1,s:3,d:28},
   done:{fish:{},insects:{},critters:{},fossils:{},artifacts:{},gems:{},recipes:{},quests:{}},
-  off:{}, hearts:{}, rel:{}, fav:{}, tools:{}, skills:{}, rank:{r:'F',pts:0}, daily:{k:'',done:{}}, todos:[], notes:'', time:'Morning', weather:'Sunny', recent:[]});
-const migrate = r => { const b = def(); const o = Object.assign(b, r||{}); Object.keys(b.done).forEach(k => o.done[k] = Object.assign({}, b.done[k], (r&&r.done&&r.done[k])||{})); o.date = Object.assign(b.date, (r&&r.date)||{}); o.rank = Object.assign(b.rank, (r&&r.rank)||{}); o.daily = Object.assign(b.daily, (r&&r.daily)||{}); if(!Array.isArray(o.todos)) o.todos = []; if(!Array.isArray(o.recent)) o.recent = [];
+  off:{}, ship:{}, hearts:{}, rel:{}, fav:{}, tools:{}, skills:{}, rank:{r:'F',pts:0}, daily:{k:'',done:{}}, todos:[], notes:'', time:'Morning', weather:'Sunny', recent:[]});
+const migrate = r => { const b = def(); const o = Object.assign(b, r||{}); Object.keys(b.done).forEach(k => o.done[k] = Object.assign({}, b.done[k], (r&&r.done&&r.done[k])||{})); o.date = Object.assign(b.date, (r&&r.date)||{}); o.rank = Object.assign(b.rank, (r&&r.rank)||{}); o.daily = Object.assign(b.daily, (r&&r.daily)||{}); if(!Array.isArray(o.todos)) o.todos = []; if(!Array.isArray(o.recent)) o.recent = []; if(!o.ship || typeof o.ship !== 'object') o.ship = {};
   // favourites are stored as 'category:id'; older saves stored a bare villager id
   const fav = {}; Object.keys(o.fav||{}).forEach(k => { fav[k.includes(':') ? k : 'people:' + k] = 1; }); o.fav = fav; return o; };
 let S;
@@ -102,7 +102,7 @@ window.addEventListener('storage', e => { if(e.key === KEY && e.newValue){ try {
 /* =========================================================
    UI state (not persisted)
    ========================================================= */
-const ui = {route:'today', cat:'fish', q:'', missing:false, season:false, time:'any', open:{}, calS:null, calD:null, pf:'all', ps:'birthday', off:0, rq:'', rm:'All', rmissing:false, qg:'All', qmissing:false, cropS:null, gc:'crops', gf:'All', gs:false, gmore:false, tipShift:0, tc:'All', installEvt:null, sort:'game', now:false, pt:'overview', pexp:{}, pq:'', gq:'', gv:''};
+const ui = {route:'today', cat:'fish', q:'', missing:false, season:false, time:'any', open:{}, calS:null, calD:null, pf:'all', ps:'birthday', off:0, rq:'', rm:'All', rmissing:false, qg:'All', qmissing:false, cropS:null, gc:'crops', gf:'All', gs:false, gmore:false, shipExp:{}, shipAll:{}, sq:'', shipMiss:false, tipShift:0, tc:'All', installEvt:null, sort:'game', now:false, pt:'overview', pexp:{}, pq:'', gq:'', gv:''};
 const TIMES = ['Morning','Afternoon','Evening','Night'];
 const timeOk = it => timeMatch(it, ui.time);
 
@@ -349,7 +349,7 @@ function itemRow(c,it){
     else rows.push(['Found', it.w], ['Sells', it.p], ['Element', it.g||'—']);
     det = `<dl class="det">${rows.map(([k,v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
   }
-  const tags = (c==='gems' && it.g) ? `<em class="tag">${it.g}</em>` : '';
+  const tags = ((c==='gems' && it.g) ? `<em class="tag">${it.g}</em>` : '') + (isShipped(c, it.id) ? '<em class="tag kelp">Shipped</em>' : '');
   return `<li class="it ${on?'done':''}"><button class="chk" data-act="tog" data-c="${c}" data-id="${it.id}" aria-pressed="${on}" aria-label="Donated: ${esc(it.n)}"></button><div class="it-main" role="button" tabindex="0" aria-expanded="${open}" data-act="open" data-k="${c}:${it.id}"><div class="it-t"><span class="nm">${esc(it.n)}</span>${isC?seasonChips(it):''}${tags}</div><div class="it-s">${esc(meta)}</div>${det}</div>${heartBtn(c, it.id, it.n)}</li>`;
 }
 
@@ -456,11 +456,11 @@ function progressView(){
   const hearts = D.villagers.reduce((a,v) => a+Math.min(heartsOf(v),10),0), heartMax = D.villagers.length*10;
   const sections = [
     ['Museum', tot, max], ['Offerings', offN, offs.length], ['Kitchen', rec, D.recipes.length], ['Quests', qn, D.quests.length],
-    ['Tools', toolPts, toolMax], ['Mastery', skPts, skMax], ['Friendships', hearts, heartMax]
+    ['Tools', toolPts, toolMax], ['Mastery', skPts, skMax], ['Friendships', hearts, heartMax], ['Shipped', shipTotal(), shipMax()]
   ];
-  const counted = sections.filter(x => x[0] !== 'Friendships');
+  const counted = sections.filter(x => x[0] !== 'Friendships' && x[0] !== 'Shipped');
   const overall = Math.round(counted.reduce((a,[,x,y]) => a+pct(x,y),0)/counted.length);
-  let h = `<section class="hero"><div class="h-row" style="margin:0"><h2>Overall</h2><span class="aside">${fmtY(S.date)}</span></div><div class="big num">${overall}<span style="font-size:.4em;color:var(--ink2)">%</span></div>${bar(overall,100)}<p class="lead">Average across museum, offerings, kitchen, quests, tools and mastery. Friendships are shown below but not counted, since maxing every villager is a very long game.</p></section>`;
+  let h = `<section class="hero"><div class="h-row" style="margin:0"><h2>Overall</h2><span class="aside">${fmtY(S.date)}</span></div><div class="big num">${overall}<span style="font-size:.4em;color:var(--ink2)">%</span></div>${bar(overall,100)}<p class="lead">Average across museum, offerings, kitchen, quests, tools and mastery. Friendships and shipping are shown below but not counted: maxing every villager and selling every item are very long games.</p></section>`;
   h += `<section><div class="h-row"><h2>By area</h2></div><div class="stat-grid">${sections.map(([n,a,b]) => `<div class="stat"><div class="r"><span>${n}</span><span class="num">${a}/${b} · ${pct(a,b)}%</span></div>${bar(a,b,pct(a,b)===100?'kelp':'')}</div>`).join('')}</div></section>`;
   h += `<section><div class="h-row"><h2>Museum collections</h2></div><ul class="list">${collections().map(c => `<li class="kv"><div><div class="k">${esc(c.n)}</div><div class="sub">${c.r?'Reward: '+esc(c.r):''}</div></div><span class="tag ${c.have>=c.need?'kelp':''} num">${c.have}/${c.need}</span></li>`).join('')}</ul></section>`;
   const nextM = D.museumMilestones.find(m => m.n > tot);
@@ -547,6 +547,7 @@ document.addEventListener('input', e => {
   else if(t.id === 'rq'){ ui.rq = t.value; render(); }
   else if(t.id === 'gq'){ ui.gq = t.value; render(); }
   else if(t.id === 'pq'){ ui.pq = t.value; render(); }
+  else if(t.id === 'sq'){ ui.sq = t.value; render(); }
   else if(t.id === 'notes'){ S.notes = t.value; clearTimeout(noteT); noteT = setTimeout(persist, 600); }
   else if(t.id === 'rpts'){ S.rank.pts = Math.max(0, parseInt(t.value)||0); clearTimeout(noteT); noteT = setTimeout(() => { persist(); render(); }, 700); }
 });
@@ -571,6 +572,7 @@ document.addEventListener('click', async e => {
       ui.route = D_.r; ui.q = ''; ui.gq = '';
       if(D_.r === 'museum'){ ui.cat = D_.c; ui.now = D_.f === 'now'; ui.season = false; ui.missing = false; ui.time = 'any'; }
       if(D_.r === 'crops') ui.cropS = null;
+      if(D_.pt) ui.pt = D_.pt;
       if(D_.r === 'catalog'){ ui.gc = D_.gc; ui.gf = 'All'; ui.gs = false; ui.gmore = false; }
       window.scrollTo(0,0); render(); break; }
     case 'gsel': { // a global search result
@@ -599,6 +601,18 @@ document.addEventListener('click', async e => {
     case 'fmiss': ui.missing = !ui.missing; render(); break;
     case 'fseas': ui.season = !ui.season; render(); break;
     case 'fnow': ui.now = !ui.now; render(); break;
+    case 'shp': { const k = shipKey(D_.c, D_.id); if(S.ship[k]) delete S.ship[k]; else S.ship[k] = 1; persist(); render(); break; }
+    case 'shpexp': ui.shipExp[D_.c] = !ui.shipExp[D_.c]; render(); break;
+    case 'shpall': ui.shipAll[D_.c] = true; render(); break;
+    case 'shpmiss': ui.shipMiss = !ui.shipMiss; render(); break;
+    case 'shpsel': {
+      const c = D_.c, on = D_.m === 'on', list = shipList(c);
+      if(!list.length) break;
+      if(on || await ask('Clear ' + plural(list.length, 'shipped item') + '?', 'Clear')){
+        list.forEach(it => { const k = shipKey(c, it.id); if(on) S.ship[k] = 1; else delete S.ship[k]; });
+        persist(); render();
+      }
+      break; }
     case 'gf': ui.gf = D_.g; ui.gmore = false; render(); break;
     case 'gs': ui.gs = !ui.gs; render(); break;
     case 'gmore': ui.gmore = true; render(); break;

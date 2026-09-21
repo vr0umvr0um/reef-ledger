@@ -14,7 +14,7 @@ global.navigator = { userAgent: 'node' };
 global.matchMedia = () => ({ matches: false });
 global.location = { search: '', protocol: 'file:' };
 
-(0, eval)(src + '\n;globalThis.__T={CATALOG,VIEWS,ui,get S(){return S},D,TIPS,dailyTips,contextTips,addDays,absDay,todayView};');
+(0, eval)(src + '\n;globalThis.__T={SHIP_CATS,shipTotal,shipMax,CATALOG,VIEWS,ui,get S(){return S},D,TIPS,dailyTips,contextTips,addDays,absDay,todayView};');
 const T = globalThis.__T;
 let bad = 0;
 const check = (name, h) => { if (typeof h !== 'string' || /undefined|NaN|\[object/.test(h)) { bad++; console.log('SUSPECT', name, (String(h).match(/.{0,60}(undefined|NaN|\[object).{0,60}/) || [])[0]); } };
@@ -28,7 +28,10 @@ T.S.date = { y: 1, s: 3, d: 28 };
 for (const c of ['fish', 'insects', 'critters', 'fossils', 'artifacts', 'gems']) { T.ui.cat = c; check('museum ' + c, T.VIEWS.museum()); }
 T.ui.cat = 'fish';
 for (const c of Object.keys(T.CATALOG)) {
-  T.ui.gc = c; T.ui.gf = 'All'; T.ui.gs = false; T.ui.gmore = true;
+  T.ui.gc = c; T.ui.gf = 'All'; T.ui.gs = false;
+T.ui.route = 'progress'; T.ui.pt = 'shipped'; T.ui.sq = ''; T.ui.shipMiss = false;
+check('shipped', T.VIEWS.progress()); T.ui.shipExp = {fish:true,artisan:true}; check('shipped open', T.VIEWS.progress()); T.ui.sq = 'juice'; check('shipped search', T.VIEWS.progress()); T.ui.sq = '';
+console.log('shippable items:', T.shipMax(), 'in', T.SHIP_CATS.length, 'categories'); T.ui.gmore = true;
   const h = T.VIEWS.catalog(); check('catalog ' + c, h);
   const groups = T.CATALOG[c].groups || [...new Set(T.CATALOG[c].items().map(T.CATALOG[c].groupOf))];
   T.ui.gf = groups[0]; check('catalog ' + c + ' group', T.VIEWS.catalog()); T.ui.gs = true; check('catalog ' + c + ' season', T.VIEWS.catalog());
