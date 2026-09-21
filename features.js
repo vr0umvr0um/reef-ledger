@@ -3,7 +3,7 @@
 
 const WEATHERS = ['Sunny','Windy','Rain','Storm','Snow','Blizzard'];
 const WX_LABEL = {Sunny:'Sunny', Windy:'Windy', Rain:'Rainy', Storm:'Stormy', Snow:'Snowy', Blizzard:'Blizzard'};
-const TYPE_LABEL = {fish:'Fish', insects:'Insect', critters:'Critter', fossils:'Fossil', artifacts:'Artifact', gems:'Gem', crops:'Crop', recipes:'Recipe', people:'Villager', quests:'Quest', seeds:'Seed', foraged:'Foraged', animalGoods:'Animal good', artisan:'Artisan good'};
+const TYPE_LABEL = {fish:'Fish', insects:'Insect', critters:'Critter', fossils:'Fossil', artifacts:'Artifact', gems:'Gem', crops:'Crop', recipes:'Recipe', people:'Villager', quests:'Quest', seeds:'Seed', foraged:'Foraged', animalGoods:'Animal good', artisan:'Artisan good', animals:'Farm animal', upgrades:'Upgrade', shops:'Shop', stock:'For sale'};
 
 /* ---------- favourites and recent ---------- */
 const isFav = (c, id) => !!S.fav[c + ':' + id];
@@ -237,10 +237,16 @@ function guideSearch(q){
   ['fish','insects','critters','fossils','artifacts','gems','crops','seeds','foraged','animalGoods','artisan','recipes'].forEach(c => D[c].forEach(it => { if(it.n.toLowerCase().includes(s)) out.push({t:c, n:it.n, id:it.id}); }));
   D.villagers.forEach(v => { if(v.n.toLowerCase().includes(s)) out.push({t:'people', n:v.n, id:v.id}); });
   D.quests.forEach(x => { if(x.n.toLowerCase().includes(s)) out.push({t:'quests', n:x.n, id:x.id}); });
+  D.animals.forEach(x => { if(x.n.toLowerCase().includes(s)) out.push({t:'animals', n:x.n, id:x.id}); });
+  D.upgrades.forEach(x => { if(x.n.toLowerCase().includes(s)) out.push({t:'upgrades', n:x.n, id:x.id, sub:x.where + ' · ' + (x.cost ? fmtNum(x.cost) + ' coins' : 'free')}); });
+  D.shops.forEach(x => { if(x.n.toLowerCase().includes(s)) out.push({t:'shops', n:x.n, id:x.id}); });
+  const sold = new Map();
+  D.shops.forEach(sh => sh.stock.forEach(it => { if(it.n.toLowerCase().includes(s)){ if(!sold.has(it.n)) sold.set(it.n, []); sold.get(it.n).push(sh.n + (it.p ? ' (' + fmtNum(it.p) + ')' : '')); } }));
+  sold.forEach((where, n) => out.push({t:'stock', n, sub:'Sold at ' + where.slice(0, 4).join(', ') + (where.length > 4 ? '…' : '')}));
   const gifts = new Map();
   D.villagers.forEach(v => v.loved.forEach(g => { if(g.toLowerCase().includes(s)){ if(!gifts.has(g)) gifts.set(g, []); gifts.get(g).push(v.n); } }));
   gifts.forEach((who, g) => out.push({t:'gift', n:g, sub:'Loved by ' + who.join(', ')}));
-  return out.slice(0, 40);
+  return out.slice(0, 50);
 }
 function guideView(){
   const q = (ui.gq || '').trim();
@@ -263,6 +269,7 @@ function guideView(){
     ['Minerals & finds', [t('gem','Gems', cnt2('gems') + ' donated', {r:'museum', c:'gems'}), t('bone','Fossils', cnt2('fossils') + ' donated', {r:'museum', c:'fossils'}), t('scroll','Artifacts', cnt2('artifacts') + ' donated', {r:'museum', c:'artifacts'})]],
     ['Farm & forage', [t('farm','Crops & plants', plural(D.crops.length,'plant'), {r:'catalog', gc:'crops'}), t('farm','Seeds & saplings', plural(D.seeds.length,'listing'), {r:'catalog', gc:'seeds'}), t('recipes','Foraged items', plural(D.foraged.length,'item'), {r:'catalog', gc:'foraged'})]],
     ['Goods', [t('offerings','Animal goods', plural(D.animalGoods.length,'product'), {r:'catalog', gc:'animalGoods'}), t('recipes','Artisan goods', plural(D.artisan.length,'product'), {r:'catalog', gc:'artisan'}), t('recipes','Cooked dishes', plural(D.recipes.length,'recipe'), {r:'recipes'})]],
+    ['Shops & upgrades', [t('recipes','Shops', plural(D.shops.length,'shop') + ' · hours and stock', {r:'shops'}), t('farm','Upgrades & buildings', upgBuilt() + '/' + D.upgrades.length + ' built', {r:'upgrades', ug:'All'}), t('offerings','Farm animals', plural(D.animals.length,'animal'), {r:'catalog', gc:'animals'})]],
     ['Town & progress', [t('offerings','Offerings', 'Lake Temple altars', {r:'offerings'}), t('scroll','Shipping log', shipTotal() + '/' + shipMax() + ' shipped', {r:'progress', pt:'shipped'}), t('quests','Quests', plural(D.quests.length,'quest'), {r:'quests'}), t('farm','Tools & skills', 'Upgrades, masteries, town rank', {r:'farm'}), t('tips','Tips', plural(TIPS.length,'tip'), {r:'tips'})]]
   ];
   return h + groups.map(([g, tiles]) => `<section><div class="h-row"><h2>${g}</h2></div><div class="tiles">${tiles.join('')}</div></section>`).join('');
@@ -301,6 +308,12 @@ const CATALOG = {
     items: () => D.animalGoods, groupOf: it => it.a, groups: null,
     sub: it => [it.a, 'sells ' + it.p, it.d ? 'every ' + it.d + ' day' + (it.d === '1' ? '' : 's') : ''].filter(Boolean).join(' · '),
     detail: it => [['Animal', it.a], ['Sell price', it.p], it.d ? ['Produced every', it.d + ' day(s)'] : null, ['Size', it.big ? 'Large' : 'Regular']]
+  },
+  animals: {
+    label: 'Farm animals', seasonal: false, note: 'Every animal you can keep, where it lives, what it produces and what it costs at the Ranch.',
+    items: () => D.animals, groupOf: it => it.h, groups: null,
+    sub: it => [it.h, 'buy ' + fmtNum(it.p), 'sells ' + fmtNum(it.sell), it.prod ? 'gives ' + it.prod.split(', ').slice(0, 2).join(', ') : ''].filter(Boolean).join(' · '),
+    detail: it => [['Lives in', it.h], ['Buy price', fmtNum(it.p)], ['Sell price', fmtNum(it.sell)], it.rank ? ['Town rank', it.rank] : null, it.d ? ['Produces every', it.d + ' day(s)'] : null, it.prod ? ['Products', it.prod] : null, it.tool ? ['Collected with', it.tool] : null, it.desc ? ['About', it.desc] : null]
   },
   artisan: {
     label: 'Artisan goods', seasonal: false, note: 'Everything your machines can make, with ingredients, time and sell price.',
@@ -358,5 +371,92 @@ function shippedView(){
     h += `<section class="pc"><div class="pc-h"><button class="pc-t" data-act="shpexp" data-c="${c}" aria-expanded="${open}"><b>${l}</b><span class="num muted">${have}/${n}</span><i class="caret" aria-hidden="true">${open ? '▾' : '▸'}</i></button><button class="btn sm" data-act="shpsel" data-c="${c}" data-m="${allShown ? 'off' : 'on'}">${allShown ? 'Clear' : 'Select'} ${filtered ? 'shown' : 'all'}</button></div>${bar(have, n, 'kelp')}` +
       (open ? `<ul class="list compact">${list.slice(0, cap).map(it => `<li class="it ${isShipped(c, it.id) ? 'done' : ''}"><button class="chk" data-act="shp" data-c="${c}" data-id="${it.id}" aria-pressed="${isShipped(c, it.id)}" aria-label="Shipped: ${esc(it.n)}"></button><div class="it-main"><div class="it-t"><span class="nm">${esc(it.n)}</span><em class="tag">${esc(shipSub(c, it))}</em></div></div></li>`).join('')}</ul>${list.length > cap ? `<button class="btn sm" data-act="shpall" data-c="${c}">Show all ${list.length}</button>` : ''}` : '') + `</section>`;
   });
+  return h;
+}
+
+/* ---------- shops: hours, opening days and stock ---------- */
+const fmtNum = n => Number(n).toLocaleString('en-US');
+function shopStatus(sh){
+  const day = DOWL[dowOf(S.date.d)], closed = sh.closed || '', open = sh.open || '';
+  if(!sh.hrs && !closed && !open) return {k:'unknown', t:''};
+  const re = new RegExp(day, 'i');
+  if(re.test(closed)) return {k:'closed', t:'Closed today'};
+  if(/rain|storm/i.test(closed) && (S.weather === 'Rain' || S.weather === 'Storm')) return {k:'closed', t:'Closed in this weather'};
+  if(open && !re.test(open)) return {k:'closed', t:'Closed today'};
+  return {k:'open', t:'Open today'};
+}
+function shopsView(){
+  const q = (ui.q || '').toLowerCase();
+  const hit = (sh, it) => it.n.toLowerCase().includes(q);
+  const match = sh => !q || sh.n.toLowerCase().includes(q) || sh.own.toLowerCase().includes(q) || sh.loc.toLowerCase().includes(q) || sh.stock.some(it => hit(sh, it));
+  const list = D.shops.slice().sort(byName).filter(sh => match(sh) && (ui.sf !== 'stock' || sh.stock.length) && (ui.sf !== 'open' || shopStatus(sh).k === 'open'));
+  let h = `<section><div class="h-row"><h2>Shops</h2><span class="aside">${DOWL[dowOf(S.date.d)]}</span></div><p class="lead">Hours, opening days and stock. Search for an item to see where it is sold. Clothing and furniture stock is not listed.</p></section>
+    <div class="toolbar"><input type="search" id="q" placeholder="Search a shop, an owner or an item for sale" value="${esc(ui.q)}" aria-label="Search shops"><div class="tabs">${[['all','All shops'],['open','Open today'],['stock','With stock listed']].map(([k, l]) => `<button class="chip" data-act="sf" data-k="${k}" aria-pressed="${ui.sf === k}">${l}</button>`).join('')}</div></div>`;
+  if(!list.length) return h + `<div class="empty">No shop matches.</div>`;
+  h += `<ul class="list">` + list.map(sh => {
+    const st = shopStatus(sh), searching = !!q && sh.stock.some(it => hit(sh, it)), open = searching || !!ui.open['shop:' + sh.id];
+    let panel = '';
+    if(open && sh.stock.length){
+      let items = sh.stock;
+      if(searching && !(sh.n.toLowerCase().includes(q))) items = items.filter(it => hit(sh, it));
+      const cap = ui.open['shopall:' + sh.id] || searching ? 5000 : 60;
+      const groups = [...new Set(items.map(it => it.g))];
+      panel = `<div class="stock">` + groups.map(g => `${groups.length > 1 ? `<div class="grp">${esc(g)}</div>` : ''}<ul class="sl">${items.filter(it => it.g === g).slice(0, cap).map(it => `<li><span class="sn">${esc(it.n)}</span><span class="sp num">${it.p ? fmtNum(it.p) : ''}</span><span class="sx">${[it.pr ? 'range ' + it.pr : '', it.r ? 'rank ' + it.r : '', it.s && !/^any$/i.test(it.s) ? it.s : '', it.lim ? 'limit ' + it.lim : '', it.req || '', it.x && it.x !== it.n ? it.x : ''].filter(Boolean).map(esc).join(' · ')}</span></li>`).join('')}</ul>`).join('') +
+        (items.length > cap ? `<button class="btn sm" data-act="shopall" data-id="${sh.id}">Show all ${items.length}</button>` : '') + `</div>`;
+    }
+    return `<li class="shop"><div class="it"><div class="it-main" role="button" tabindex="0" aria-expanded="${open}" data-act="${sh.stock.length ? 'open' : 'none'}" data-k="shop:${sh.id}"><div class="it-t"><span class="nm">${esc(sh.n)}</span>${st.k !== 'unknown' ? `<em class="tag ${st.k === 'open' ? 'kelp' : 'coral'}">${st.t}</em>` : ''}${sh.stock.length ? `<em class="tag">${sh.stock.length} items</em>` : ''}</div>
+      <div class="it-s">${[sh.loc, sh.hrs, sh.own ? 'run by ' + sh.own : '', sh.open ? 'open ' + sh.open : '', sh.closed ? 'closed ' + sh.closed : ''].filter(Boolean).map(esc).join(' · ')}</div></div></div>${panel}</li>`;
+  }).join('') + `</ul>`;
+  return h;
+}
+
+/* ---------- upgrades and buildings, with materials to tick ---------- */
+const TIER_NAMES = ['Bronze', 'Silver', 'Gold', 'Osmium'];
+const BASE_TOOLS = new Set(['axe', 'hoe', 'pickaxe', 'scythe', 'watering can', 'fishing pole', 'bug net']);
+const UPG_GROUPS = ['Tools', 'Bag', 'Buildings', 'Lab'];
+const upgBuilt = () => D.upgrades.filter(u => S.upg[u.id]).length;
+// 'base' = a starting tool, 'built' = an earlier upgrade you already built, 'ticked' = gathered, false = still needed
+function matHave(u, i){
+  const n = u.mats[i].n.toLowerCase();
+  if(BASE_TOOLS.has(n)) return 'base';
+  const prev = D.upgrades.find(x => x.n.toLowerCase() === n);
+  if(prev && S.upg[prev.id]) return 'built';
+  return (S.mat[u.id] && S.mat[u.id][i]) ? 'ticked' : false;
+}
+function upgNeeds(list){
+  let gold = 0, left = 0; const mats = {};
+  list.filter(u => !S.upg[u.id]).forEach(u => { left++; gold += u.cost; u.mats.forEach((m, i) => { if(!matHave(u, i)) mats[m.n] = (mats[m.n] || 0) + m.q; }); });
+  return {gold, left, mats: Object.entries(mats).sort((a, b) => b[1] - a[1])};
+}
+function tierOf(u){ return TIER_NAMES.findIndex(n => u.n.startsWith(n)) + 1; }
+function syncToolsFromUpgrades(){
+  TOOLS.forEach(t => {
+    const ups = D.upgrades.filter(u => u.g === 'Tools' && u.sub.toLowerCase() === t.toLowerCase());
+    if(!ups.length) return;
+    S.tools[t] = Math.max(0, ...ups.filter(u => S.upg[u.id]).map(tierOf));
+  });
+}
+function syncUpgradesFromTool(t){
+  const tier = S.tools[t] || 0;
+  D.upgrades.filter(u => u.g === 'Tools' && u.sub.toLowerCase() === t.toLowerCase()).forEach(u => { if(tierOf(u) <= tier) S.upg[u.id] = 1; else delete S.upg[u.id]; });
+}
+function upgradesView(){
+  const g = ui.ug, list = D.upgrades.filter(u => g === 'All' || u.g === g);
+  const built = list.filter(u => S.upg[u.id]).length, need = upgNeeds(list);
+  let h = `<section><div class="h-row"><h2>Upgrades & buildings</h2><span class="aside num">${upgBuilt()}/${D.upgrades.length} built</span></div>
+    <p class="lead">Tick an upgrade once it is built, and tick each material as you gather it. Earlier tiers and your starting tools count automatically.</p></section>
+    <div class="tabs">${['All', ...UPG_GROUPS].map(k => { const l = D.upgrades.filter(u => k === 'All' || u.g === k); return `<button class="chip" data-act="ug" data-g="${k}" aria-pressed="${g === k}">${k === 'Lab' ? 'Laboratory' : k}<small class="num">${l.filter(u => S.upg[u.id]).length}/${l.length}</small></button>`; }).join('')}</div>
+    <section><div class="progress-head"><b class="num">${built}<span class="muted" style="font:600 16px var(--body)"> / ${list.length}</span></b><span class="muted small">${need.left ? fmtNum(need.gold) + ' coins left to spend' : 'everything built'}</span></div>${bar(built, list.length, 'kelp')}
+    ${need.left ? `<div style="margin-top:10px"><button class="chip" data-act="ugneed" aria-pressed="${ui.ugNeed}">Shopping list: materials still needed</button></div>` : ''}
+    ${ui.ugNeed && need.left ? `<div class="need">${need.mats.length ? need.mats.map(([n, q]) => `<span class="chip on">${esc(n)} <small>×${fmtNum(q)}</small></span>`).join('') : '<span class="muted small">All materials are ticked.</span>'}</div>` : ''}</section>`;
+  let prev = '';
+  h += `<ul class="list">` + list.map(u => {
+    const isBuilt = !!S.upg[u.id];
+    const head = (u.g + '|' + u.sub) !== prev ? `<li class="grp">${g === 'All' ? esc(u.g === 'Lab' ? 'Laboratory' : u.g) + ' · ' : ''}${esc(u.sub)}</li>` : '';
+    prev = u.g + '|' + u.sub;
+    return head + `<li class="it ${isBuilt ? 'done' : ''}"><button class="chk" data-act="ugb" data-id="${u.id}" aria-pressed="${isBuilt}" aria-label="Built: ${esc(u.n)}"></button><div class="it-main"><div class="it-t"><span class="nm">${esc(u.n)}</span></div>
+      <div class="it-s">${[u.where, u.cost ? fmtNum(u.cost) + ' coins' : 'no coins', u.t, u.rank ? 'rank ' + u.rank : ''].filter(Boolean).map(esc).join(' · ')}</div>${u.note ? `<div class="it-s">${esc(u.note)}</div>` : ''}
+      ${u.mats.length ? `<div class="chips mats">${u.mats.map((m, i) => { const st = matHave(u, i); return `<button class="chip ${st ? 'on' : ''}" data-act="ugm" data-id="${u.id}" data-i="${i}" aria-pressed="${!!st}" ${st === 'base' || st === 'built' ? 'disabled' : ''}>${esc(m.n)}<small>×${fmtNum(m.q)}${st === 'base' ? ' · you have it' : st === 'built' ? ' · built' : ''}</small></button>`; }).join('')}</div>` : ''}</div></li>`;
+  }).join('') + `</ul>`;
   return h;
 }

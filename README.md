@@ -14,7 +14,8 @@ Barre de contexte permanente (date, heure, météo) et 5 onglets :
   meilleure culture à planter, planificateur de cadeaux, villageois, poissons, insectes, créatures marines,
   gemmes, fossiles, artefacts, cultures et plantes (89), graines et plants (95), plantes sauvages (83),
   produits d'élevage (42), produits artisanaux (446), plats cuisinés (107, avec énergie et santé),
-  offrandes, quêtes, outils et compétences, conseils.
+  boutiques (30, horaires, jours d'ouverture et stock de 14 d'entre elles), améliorations et bâtiments (80, avec
+  matériaux à cocher et liste de courses), animaux d'élevage (17), offrandes, quêtes, outils et compétences, conseils.
 - **Progress** : vue d'ensemble, liste du musée par section (avec « Select all »), **suivi d'expédition**
   (862 objets : poissons, insectes, créatures, gemmes, cultures, plantes sauvages, produits d'élevage et artisanaux),
   offrandes du temple.

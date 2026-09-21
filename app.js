@@ -75,8 +75,8 @@ const untilBirthday = b => { const t = absDay(S.date)%112, x = b[0]*28+b[1]-1; r
    ========================================================= */
 const def = () => ({v:1, ts:0, date:{y:1,s:3,d:28},
   done:{fish:{},insects:{},critters:{},fossils:{},artifacts:{},gems:{},recipes:{},quests:{}},
-  off:{}, ship:{}, hearts:{}, rel:{}, fav:{}, tools:{}, skills:{}, rank:{r:'F',pts:0}, daily:{k:'',done:{}}, todos:[], notes:'', time:'Morning', weather:'Sunny', recent:[]});
-const migrate = r => { const b = def(); const o = Object.assign(b, r||{}); Object.keys(b.done).forEach(k => o.done[k] = Object.assign({}, b.done[k], (r&&r.done&&r.done[k])||{})); o.date = Object.assign(b.date, (r&&r.date)||{}); o.rank = Object.assign(b.rank, (r&&r.rank)||{}); o.daily = Object.assign(b.daily, (r&&r.daily)||{}); if(!Array.isArray(o.todos)) o.todos = []; if(!Array.isArray(o.recent)) o.recent = []; if(!o.ship || typeof o.ship !== 'object') o.ship = {};
+  off:{}, ship:{}, upg:{}, mat:{}, hearts:{}, rel:{}, fav:{}, tools:{}, skills:{}, rank:{r:'F',pts:0}, daily:{k:'',done:{}}, todos:[], notes:'', time:'Morning', weather:'Sunny', recent:[]});
+const migrate = r => { const b = def(); const o = Object.assign(b, r||{}); Object.keys(b.done).forEach(k => o.done[k] = Object.assign({}, b.done[k], (r&&r.done&&r.done[k])||{})); o.date = Object.assign(b.date, (r&&r.date)||{}); o.rank = Object.assign(b.rank, (r&&r.rank)||{}); o.daily = Object.assign(b.daily, (r&&r.daily)||{}); if(!Array.isArray(o.todos)) o.todos = []; if(!Array.isArray(o.recent)) o.recent = []; if(!o.ship || typeof o.ship !== 'object') o.ship = {}; if(!o.upg) o.upg = {}; if(!o.mat) o.mat = {};
   // favourites are stored as 'category:id'; older saves stored a bare villager id
   const fav = {}; Object.keys(o.fav||{}).forEach(k => { fav[k.includes(':') ? k : 'people:' + k] = 1; }); o.fav = fav; return o; };
 let S;
@@ -102,7 +102,7 @@ window.addEventListener('storage', e => { if(e.key === KEY && e.newValue){ try {
 /* =========================================================
    UI state (not persisted)
    ========================================================= */
-const ui = {route:'today', cat:'fish', q:'', missing:false, season:false, time:'any', open:{}, calS:null, calD:null, pf:'all', ps:'birthday', off:0, rq:'', rm:'All', rmissing:false, qg:'All', qmissing:false, cropS:null, gc:'crops', gf:'All', gs:false, gmore:false, shipExp:{}, shipAll:{}, sq:'', shipMiss:false, tipShift:0, tc:'All', installEvt:null, sort:'game', now:false, pt:'overview', pexp:{}, pq:'', gq:'', gv:''};
+const ui = {route:'today', cat:'fish', q:'', missing:false, season:false, time:'any', open:{}, calS:null, calD:null, pf:'all', ps:'birthday', off:0, rq:'', rm:'All', rmissing:false, qg:'All', qmissing:false, cropS:null, gc:'crops', gf:'All', gs:false, gmore:false, shipExp:{}, shipAll:{}, sq:'', shipMiss:false, ug:'All', ugNeed:false, sf:'all', tipShift:0, tc:'All', installEvt:null, sort:'game', now:false, pt:'overview', pexp:{}, pq:'', gq:'', gv:''};
 const TIMES = ['Morning','Afternoon','Evening','Night'];
 const timeOk = it => timeMatch(it, ui.time);
 
@@ -145,7 +145,7 @@ const byScarce = (a,b) => a.n-b.n || rarRank(b.it.r)-rarRank(a.it.r) || b.it.p-a
    ========================================================= */
 const NAV = [['today','Today'],['planner','Planner'],['guide','Field Guide'],['progress','Progress'],['data','Settings']];
 const TAB_OF = r => ({today:'today', planner:'planner', calendar:'planner', progress:'progress', data:'data', guide:'guide'})[r] || 'guide';
-const SUBPAGES = ['catalog','museum','people','offerings','recipes','quests','farm','tips','gifts','crops','route'];
+const SUBPAGES = ['shops','upgrades','catalog','museum','people','offerings','recipes','quests','farm','tips','gifts','crops','route'];
 
 function renderChrome(){
   const cur = TAB_OF(ui.route);
@@ -242,6 +242,8 @@ function todayView(){
   if(plantable.length) h += `<ul class="list">${plantable.slice(0,5).map(c => `<li class="row"><div class="body"><div class="ttl">Plant ${esc(c.n)} <span class="tag kelp">ready ${fmt(addDays(d,growDays(c)))}</span></div><div class="sub">${esc(c.g)} · seed ${c.seed} · sells ${c.p}</div></div></li>`).join('')}</ul><p class="small muted">Only crops that finish before ${SEAS[s]} ends, best profit per day first.</p>`;
   else h += `<div class="empty">Nothing planted today would ripen before ${SEAS[s]} ends. ${left<=7?`Plan for ${SEAS[nx]}: buy seeds at Sam’s General Store and plant on day 1.`:''}</div>`;
   if(left <= 7 && nextCrops.length) h += `<h3 class="grp" style="margin-top:12px;padding-inline:0;background:none">Best ${SEAS[nx]} crops to buy</h3><ul class="list">${nextCrops.slice(0,5).map(c => `<li class="row"><div class="body"><div class="ttl">${esc(c.n)} <span class="tag">${esc(c.t)}</span></div><div class="sub">${esc(c.g)} · seed ${c.seed} · sells ${c.p}</div></div></li>`).join('')}</ul>`;
+  const closedToday = D.shops.filter(sh => sh.stock.length && shopStatus(sh).k === 'closed').map(sh => sh.n);
+  if(closedToday.length) h += `<p class="small muted" style="margin-top:10px">Closed today (${DOWL[dow]}): ${esc(closedToday.join(', '))}. <button class="link" data-act="g" data-r="shops">All shops</button></p>`;
   h += `</section>`;
 
   /* offerings */
@@ -456,11 +458,11 @@ function progressView(){
   const hearts = D.villagers.reduce((a,v) => a+Math.min(heartsOf(v),10),0), heartMax = D.villagers.length*10;
   const sections = [
     ['Museum', tot, max], ['Offerings', offN, offs.length], ['Kitchen', rec, D.recipes.length], ['Quests', qn, D.quests.length],
-    ['Tools', toolPts, toolMax], ['Mastery', skPts, skMax], ['Friendships', hearts, heartMax], ['Shipped', shipTotal(), shipMax()]
+    ['Tools', toolPts, toolMax], ['Mastery', skPts, skMax], ['Friendships', hearts, heartMax], ['Shipped', shipTotal(), shipMax()], ['Upgrades', upgBuilt(), D.upgrades.length]
   ];
-  const counted = sections.filter(x => x[0] !== 'Friendships' && x[0] !== 'Shipped');
+  const counted = sections.filter(x => x[0] !== 'Friendships' && x[0] !== 'Shipped' && x[0] !== 'Upgrades');
   const overall = Math.round(counted.reduce((a,[,x,y]) => a+pct(x,y),0)/counted.length);
-  let h = `<section class="hero"><div class="h-row" style="margin:0"><h2>Overall</h2><span class="aside">${fmtY(S.date)}</span></div><div class="big num">${overall}<span style="font-size:.4em;color:var(--ink2)">%</span></div>${bar(overall,100)}<p class="lead">Average across museum, offerings, kitchen, quests, tools and mastery. Friendships and shipping are shown below but not counted: maxing every villager and selling every item are very long games.</p></section>`;
+  let h = `<section class="hero"><div class="h-row" style="margin:0"><h2>Overall</h2><span class="aside">${fmtY(S.date)}</span></div><div class="big num">${overall}<span style="font-size:.4em;color:var(--ink2)">%</span></div>${bar(overall,100)}<p class="lead">Average across museum, offerings, kitchen, quests, tools and mastery. Friendships, shipping and upgrades are shown below but not counted: maxing every villager and selling every item are very long games.</p></section>`;
   h += `<section><div class="h-row"><h2>By area</h2></div><div class="stat-grid">${sections.map(([n,a,b]) => `<div class="stat"><div class="r"><span>${n}</span><span class="num">${a}/${b} · ${pct(a,b)}%</span></div>${bar(a,b,pct(a,b)===100?'kelp':'')}</div>`).join('')}</div></section>`;
   h += `<section><div class="h-row"><h2>Museum collections</h2></div><ul class="list">${collections().map(c => `<li class="kv"><div><div class="k">${esc(c.n)}</div><div class="sub">${c.r?'Reward: '+esc(c.r):''}</div></div><span class="tag ${c.have>=c.need?'kelp':''} num">${c.have}/${c.need}</span></li>`).join('')}</ul></section>`;
   const nextM = D.museumMilestones.find(m => m.n > tot);
@@ -509,7 +511,7 @@ function dataView(){
 /* =========================================================
    Render
    ========================================================= */
-const VIEWS = {today:todayView, planner:plannerView, guide:guideView, progress:progressHub, data:dataView, tips:tipsView, calendar:plannerView, museum:museumView, people:peopleView, offerings:offeringsView, recipes:recipesView, quests:questsView, farm:farmView, gifts:giftsView, crops:cropsView, route:routeView, catalog:catalogView};
+const VIEWS = {today:todayView, planner:plannerView, guide:guideView, progress:progressHub, data:dataView, tips:tipsView, calendar:plannerView, museum:museumView, people:peopleView, offerings:offeringsView, recipes:recipesView, quests:questsView, farm:farmView, gifts:giftsView, crops:cropsView, route:routeView, catalog:catalogView, shops:shopsView, upgrades:upgradesView};
 function render(){
   const a = document.activeElement, id = a && a.id, pos = a && a.selectionStart;
   renderChrome();
@@ -573,6 +575,8 @@ document.addEventListener('click', async e => {
       if(D_.r === 'museum'){ ui.cat = D_.c; ui.now = D_.f === 'now'; ui.season = false; ui.missing = false; ui.time = 'any'; }
       if(D_.r === 'crops') ui.cropS = null;
       if(D_.pt) ui.pt = D_.pt;
+      if(D_.r === 'upgrades') ui.ug = D_.ug || 'All';
+      if(D_.r === 'shops') ui.sf = 'all';
       if(D_.r === 'catalog'){ ui.gc = D_.gc; ui.gf = 'All'; ui.gs = false; ui.gmore = false; }
       window.scrollTo(0,0); render(); break; }
     case 'gsel': { // a global search result
@@ -580,6 +584,8 @@ document.addEventListener('click', async e => {
       if(t === 'gift'){ ui.route = 'people'; ui.q = n; ui.pf = 'all'; }
       else if(t === 'people'){ ui.route = 'people'; ui.q = n; ui.pf = 'all'; }
       else if(t === 'recipes'){ ui.route = 'recipes'; ui.rq = n; ui.rm = 'All'; ui.rmissing = false; }
+      else if(t === 'shops' || t === 'stock'){ ui.route = 'shops'; ui.q = n; ui.sf = 'all'; }
+      else if(t === 'upgrades'){ ui.route = 'upgrades'; ui.ug = 'All'; }
       else if(CATALOG[t]){ ui.route = 'catalog'; ui.gc = t; ui.gf = 'All'; ui.gs = false; ui.gmore = false; ui.q = n; }
       else if(t === 'quests'){ ui.route = 'quests'; ui.qg = 'All'; ui.qmissing = false; }
       else { ui.route = 'museum'; ui.cat = t; ui.q = n; ui.missing = false; ui.season = false; ui.now = false; ui.time = 'any'; }
@@ -613,6 +619,12 @@ document.addEventListener('click', async e => {
         persist(); render();
       }
       break; }
+    case 'sf': ui.sf = D_.k; render(); break;
+    case 'shopall': ui.open['shopall:' + D_.id] = true; render(); break;
+    case 'ug': ui.ug = D_.g; render(); break;
+    case 'ugneed': ui.ugNeed = !ui.ugNeed; render(); break;
+    case 'ugb': { if(S.upg[D_.id]) delete S.upg[D_.id]; else S.upg[D_.id] = 1; syncToolsFromUpgrades(); persist(); render(); break; }
+    case 'ugm': { const m = S.mat[D_.id] || (S.mat[D_.id] = {}); if(m[D_.i]) delete m[D_.i]; else m[D_.i] = 1; persist(); render(); break; }
     case 'gf': ui.gf = D_.g; ui.gmore = false; render(); break;
     case 'gs': ui.gs = !ui.gs; render(); break;
     case 'gmore': ui.gmore = true; render(); break;
@@ -640,7 +652,7 @@ document.addEventListener('click', async e => {
     case 'rmiss': ui.rmissing = !ui.rmissing; render(); break;
     case 'qg': ui.qg = D_.g; render(); break;
     case 'qmiss': ui.qmissing = !ui.qmissing; render(); break;
-    case 'tool': S.tools[D_.t] = +D_.i; persist(); render(); break;
+    case 'tool': S.tools[D_.t] = +D_.i; syncUpgradesFromTool(D_.t); persist(); render(); break;
     case 'skill': S.skills[D_.k] = clamp((S.skills[D_.k]||0) + (+D_.d), 0, 10); persist(); render(); break;
     case 'rank': S.rank.r = D_.r; persist(); render(); break;
     case 'crops': ui.cropS = +D_.s; render(); break;
