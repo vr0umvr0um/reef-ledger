@@ -48,8 +48,16 @@ const ICONS = {
   quests:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
   farm:'<path d="M12 21v-9M12 12c0-4-3-6-7-6 0 4 3 6 7 6zM12 14c0-3 2-5 6-5 0 3-2 5-6 5z"/>',
   progress:'<path d="M4 20V11M10 20V4M16 20v-6M22 20H2"/>',
-  data:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
-  tips:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>'
+  data:'<path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.2"/><circle cx="10" cy="12" r="2.2"/><circle cx="17.5" cy="18" r="2.2"/>',
+  tips:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',
+  gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8h14v-8M12 8c-2-4-6-3-5 0 .5 1.5 3 1 5 0zM12 8c2-4 6-3 5 0-.5 1.5-3 1-5 0z"/>',
+  bug:'<path d="M12 8c-3 0-5 2-5 5s2 6 5 6 5-3 5-6-2-5-5-5zM12 8V5M9 5l1 2M15 5l-1 2M7 12H4M17 12h3M7.5 16L5 18M16.5 16l2.5 2"/>',
+  gem:'<path d="M6 4h12l3 5-9 11L3 9zM3 9h18M9 4l-2 5 5 11M15 4l2 5-5 11"/>',
+  bone:'<path d="M6 6l12 12M4.5 7.5a2 2 0 1 1 3-3M7.5 4.5a2 2 0 1 1 0 0M16.5 19.5a2 2 0 1 0 3-3M19.5 16.5a2 2 0 1 0 0 0"/>',
+  scroll:'<path d="M8 4h10v13a3 3 0 0 1-3 3H6a3 3 0 0 0 3-3V4zM8 4H6a2 2 0 0 0-2 2v1h4"/>',
+  route:'<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>',
+  guide:'<path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z"/>',
+  planner:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/>'
 };
 const svg = n => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]||''}</svg>`;
 
@@ -67,8 +75,10 @@ const untilBirthday = b => { const t = absDay(S.date)%112, x = b[0]*28+b[1]-1; r
    ========================================================= */
 const def = () => ({v:1, ts:0, date:{y:1,s:3,d:28},
   done:{fish:{},insects:{},critters:{},fossils:{},artifacts:{},gems:{},recipes:{},quests:{}},
-  off:{}, hearts:{}, rel:{}, fav:{}, tools:{}, skills:{}, rank:{r:'F',pts:0}, daily:{k:'',done:{}}, todos:[], notes:''});
-const migrate = r => { const b = def(); const o = Object.assign(b, r||{}); Object.keys(b.done).forEach(k => o.done[k] = Object.assign({}, b.done[k], (r&&r.done&&r.done[k])||{})); o.date = Object.assign(b.date, (r&&r.date)||{}); o.rank = Object.assign(b.rank, (r&&r.rank)||{}); o.daily = Object.assign(b.daily, (r&&r.daily)||{}); if(!Array.isArray(o.todos)) o.todos = []; return o; };
+  off:{}, hearts:{}, rel:{}, fav:{}, tools:{}, skills:{}, rank:{r:'F',pts:0}, daily:{k:'',done:{}}, todos:[], notes:'', time:'Morning', weather:'Sunny', recent:[]});
+const migrate = r => { const b = def(); const o = Object.assign(b, r||{}); Object.keys(b.done).forEach(k => o.done[k] = Object.assign({}, b.done[k], (r&&r.done&&r.done[k])||{})); o.date = Object.assign(b.date, (r&&r.date)||{}); o.rank = Object.assign(b.rank, (r&&r.rank)||{}); o.daily = Object.assign(b.daily, (r&&r.daily)||{}); if(!Array.isArray(o.todos)) o.todos = []; if(!Array.isArray(o.recent)) o.recent = [];
+  // favourites are stored as 'category:id'; older saves stored a bare villager id
+  const fav = {}; Object.keys(o.fav||{}).forEach(k => { fav[k.includes(':') ? k : 'people:' + k] = 1; }); o.fav = fav; return o; };
 let S;
 try { S = migrate(JSON.parse(localStorage.getItem(KEY)||'null')); } catch(e){ S = def(); }
 
@@ -92,14 +102,9 @@ window.addEventListener('storage', e => { if(e.key === KEY && e.newValue){ try {
 /* =========================================================
    UI state (not persisted)
    ========================================================= */
-const ui = {route:'today', cat:'fish', q:'', missing:false, season:false, time:'any', open:{}, calS:null, calD:null, pf:'all', ps:'birthday', off:0, rq:'', rm:'All', rmissing:false, qg:'All', qmissing:false, cropS:null, tipShift:0, tc:'All', installEvt:null};
+const ui = {route:'today', cat:'fish', q:'', missing:false, season:false, time:'any', open:{}, calS:null, calD:null, pf:'all', ps:'birthday', off:0, rq:'', rm:'All', rmissing:false, qg:'All', qmissing:false, cropS:null, tipShift:0, tc:'All', installEvt:null, sort:'game', now:false, pt:'overview', pexp:{}, pq:'', gq:'', gv:''};
 const TIMES = ['Morning','Afternoon','Evening','Night'];
-const timeOk = it => {
-  if(ui.time === 'any' || !it.t) return true;
-  const t = it.t.toLowerCase();
-  if(t.includes('all day') || t.includes(ui.time.toLowerCase())) return true;
-  return ui.time !== 'Night' && /(^|[^a-z])day([^a-z]|$)/.test(t);
-};
+const timeOk = it => timeMatch(it, ui.time);
 
 /* =========================================================
    Data helpers
@@ -138,18 +143,16 @@ const byScarce = (a,b) => a.n-b.n || rarRank(b.it.r)-rarRank(a.it.r) || b.it.p-a
 /* =========================================================
    Views
    ========================================================= */
-const NAV = [['today','Today'],['tips','Tips'],['calendar','Calendar'],['museum','Museum'],['people','People'],['offerings','Offerings'],['recipes','Kitchen'],['quests','Quests'],['farm','Farm & skills'],['progress','Progress'],['data','Settings']];
-const MAIN5 = ['today','calendar','museum','people','more'];
+const NAV = [['today','Today'],['planner','Planner'],['guide','Field Guide'],['progress','Progress'],['data','Settings']];
+const TAB_OF = r => ({today:'today', planner:'planner', calendar:'planner', progress:'progress', data:'data', guide:'guide'})[r] || 'guide';
+const SUBPAGES = ['museum','people','offerings','recipes','quests','farm','tips','gifts','crops','route'];
 
 function renderChrome(){
-  const label = Object.fromEntries(NAV);
-  $('#rail').innerHTML = `<div class="brand">${svg('offerings')}Reef Ledger</div>` + NAV.map(([k,l]) => `<button data-act="nav" data-to="${k}" ${ui.route===k?'aria-current="page"':''}>${svg(k)}${l}</button>`).join('');
-  $('#tabbar').innerHTML = MAIN5.map(k => {
-    const on = k==='more' ? !MAIN5.slice(0,4).includes(ui.route) : ui.route===k;
-    return `<button data-act="nav" data-to="${k}" ${on?'aria-current="page"':''}>${svg(k)}<span>${k==='more'?'More':label[k]}</span></button>`;
-  }).join('');
-  const d = S.date;
-  $('#datepill').innerHTML = `${svg('calendar').replace('<svg','<svg width="16" height="16" style="stroke:var(--teal);fill:none;stroke-width:2"')}<b>${fmt(d)}</b><small>${DOW[dowOf(d.d)]} · Y${d.y}</small>`;
+  const cur = TAB_OF(ui.route);
+  $('#rail').innerHTML = `<div class="brand">${svg('offerings')}Reef Ledger</div>` + NAV.map(([k,l]) => `<button data-act="nav" data-to="${k}" ${cur===k?'aria-current="page"':''}>${svg(k)}${l}</button>`).join('');
+  $('#tabbar').innerHTML = NAV.map(([k,l]) => `<button class="${k==='guide'?'mid':''}" data-act="nav" data-to="${k}" ${cur===k?'aria-current="page"':''}><span class="ic">${svg(k)}</span><span>${k==='guide'?'Guide':l}</span></button>`).join('');
+  $('#datepill').innerHTML = ctxHtml();
+  $('#ctx').innerHTML = ctxHtml();
   $('#install').hidden = !ui.installEvt;
 }
 
@@ -166,7 +169,7 @@ function todayView(){
   h += `<section class="hero">
     <h1 class="when">${SEAS[s]} <span>${d.d}</span></h1>
     <p class="sub">${DOWL[dow]} · Year ${d.y} · ${lastDay ? (s===3 ? 'last day of the year' : 'last day of '+SEAS[s]) : plural(left,'day')+' left in '+SEAS[s]}</p>
-    <div class="acts"><button class="btn pri" data-act="next">Sleep → ${fmt(tomorrow)}</button><button class="btn" data-act="date">Change date</button></div>
+    <div class="acts"><button class="btn pri" data-act="next">Sleep → ${fmt(tomorrow)}</button><button class="btn" data-act="nav" data-to="route">Today’s route</button></div>
   </section>`;
 
   /* banners */
@@ -191,10 +194,12 @@ function todayView(){
     ROUTINE.map(([k,t]) => `<li class="row ${S.daily.done[k]?'done':''}"><button class="chk" data-act="rt" data-k="${k}" aria-pressed="${!!S.daily.done[k]}" aria-label="${esc(t)}"></button><div class="body"><div class="ttl">${esc(t)}</div></div></li>`).join('') +
     `</ul></section>`;
 
-  /* my to-do list */
-  h += `<section><div class="h-row"><h2>My to-do list</h2><span class="aside num">${S.todos.filter(t=>t.done).length}/${S.todos.length}</span></div><ul class="list">` +
-    S.todos.map(t => `<li class="row ${t.done?'done':''}"><button class="chk" data-act="todo" data-id="${t.id}" aria-pressed="${!!t.done}" aria-label="${esc(t.t)}"></button><div class="body"><div class="ttl">${esc(t.t)}</div></div><button class="star" data-act="tododel" data-id="${t.id}" aria-label="Delete ${esc(t.t)}">×</button></li>`).join('') +
-    `<li class="row todo-add"><input type="text" id="todo-in" placeholder="Add a task, e.g. craft 5 bait" aria-label="New task" maxlength="120"><button class="btn sm" data-act="todoadd">Add</button></li></ul></section>`;
+  /* right now (uses the time and weather from the context bar) */
+  const nowList = missingSeason(s).filter(x => x.now && nowOk(x.it)).sort(byScarce);
+  h += `<section><div class="h-row"><h2>Biting right now</h2><span class="aside">${S.time} · ${WX_LABEL[S.weather]}</span></div>`;
+  if(nowList.length) h += `<ul class="list">${nowList.slice(0,6).map(x => `<li class="row"><div class="body"><div class="ttl">${esc(x.it.n)} <span class="tag">${x.c==='critters'?'critter':x.c.slice(0,-1)}</span>${x.leaving?' <span class="tag coral">last chance</span>':''}</div><div class="sub">${esc(short(x.it.w,90))}</div></div></li>`).join('')}</ul><p class="small muted">${nowList.length>6?'+'+(nowList.length-6)+' more · ':''}<button class="link" data-act="nav" data-to="route">Open today’s route</button></p>`;
+  else h += `<div class="empty">Nothing you are missing bites at this time and weather. Change them in the bar below, or open today’s route.</div>`;
+  h += `</section>`;
 
   /* collectibles */
   const M = missingSeason(s);
@@ -222,7 +227,7 @@ function todayView(){
 
   /* people */
   const soon = D.villagers.filter(v => v.b).map(v => ({v, n: untilBirthday(v.b)})).filter(x => x.n>=1 && x.n<=7).sort((a,b)=>a.n-b.n);
-  const favs = D.villagers.filter(v => S.fav[v.id]).sort((a,b) => heartsOf(a)-heartsOf(b)).slice(0,5);
+  const favs = D.villagers.filter(v => isFav('people', v.id)).sort((a,b) => heartsOf(a)-heartsOf(b)).slice(0,5);
   let pr = '';
   soon.forEach(({v,n}) => pr += `<li class="row"><div class="body"><div class="ttl">${esc(v.n)}’s birthday in ${plural(n,'day')} <span class="tag sun">${dateOf(v)}</span></div><div class="sub">Loves: ${esc(v.loved.slice(0,4).join(', ')||'—')}</div></div></li>`);
   favs.forEach(v => pr += `<li class="row"><div class="body"><div class="ttl">Chat with ${esc(v.n)} <span class="tag">♥ ${heartsOf(v)}</span></div><div class="sub">Gift idea: ${esc(v.loved.slice(0,3).join(', ')||'—')}</div></div></li>`);
@@ -266,8 +271,7 @@ function todayView(){
   D.offerings.filter(o => !offDone(o) && offCount(o) >= o.need-1 && offCount(o)>0).slice(0,3).forEach(o => g += `<li class="row"><div class="body"><div class="ttl">${esc(o.n)}: one item left</div><div class="sub">${offCount(o)}/${o.need}</div></div></li>`);
   if(g) h += `<section><div class="h-row"><h2>Almost there</h2></div><ul class="list">${g}</ul></section>`;
 
-  /* notes */
-  h += `<section><div class="h-row"><h2>Notes</h2></div><textarea id="notes" placeholder="Anything to remember — shared across your devices" aria-label="Notes">${esc(S.notes)}</textarea></section>`;
+  h += favoritesSection() + recentSection();
   return h;
 }
 
@@ -312,18 +316,19 @@ function calendarView(){
 
 /* ---------- MUSEUM ---------- */
 function museumView(){
-  const c = ui.cat, list = D[c], done = S.done[c];
+  const c = ui.cat, list = D[c];
   const total = museumTotal(), max = museumMax();
   const s = S.date.s;
   const isC = CRIT3.includes(c);
-  let arr = list.filter(it => (!ui.missing || !done[it.id]) && (!ui.season || !it.s || it.s[s] > 0) && (!isC || timeOk(it)) && (!ui.q || it.n.toLowerCase().includes(ui.q.toLowerCase())));
+  const arr = museumItems(c);
   const have = cnt(c);
-  let h = `<section><div class="h-row"><h2>Museum</h2><span class="aside num">${total}/${max} donated</span></div>${bar(total,max)}</section>`;
+  let h = `<section><div class="h-row"><h2>${esc(CATS.find(x=>x[0]===c)[1])}</h2><span class="aside num">${total}/${max} donated in all</span></div></section>`;
   h += `<div class="tabs" role="tablist">${CATS.map(([k,l]) => `<button class="chip" role="tab" data-act="cat" data-c="${k}" aria-pressed="${k===c}">${l}<small class="num">${cnt(k)}/${D[k].length}</small></button>`).join('')}</div>`;
   h += `<div class="toolbar"><input type="search" id="q" placeholder="Search ${esc(CATS.find(x=>x[0]===c)[1].toLowerCase())}" value="${esc(ui.q)}" aria-label="Search">
-    <div class="r"><button class="chip" data-act="fmiss" aria-pressed="${ui.missing}">Missing only</button>${isC?`<button class="chip" data-act="fseas" aria-pressed="${ui.season}">In season now (${SEAS[s]})</button>`:''}<span style="flex:1"></span><button class="btn sm" data-act="bulk" data-m="on">Mark shown</button><button class="btn sm" data-act="bulk" data-m="off">Clear shown</button></div>
-    ${isC?`<div class="tabs" role="group" aria-label="Time of day">${['any',...TIMES].map(t => `<button class="chip" data-act="ftime" data-t="${t}" aria-pressed="${ui.time===t}">${t==='any'?'Any time':t}</button>`).join('')}</div>`:''}</div>`;
-  h += `<section><div class="progress-head"><b class="num">${have}<span class="muted" style="font:600 16px var(--body)"> / ${list.length}</span></b><span class="muted small">${arr.length} shown</span></div>${bar(have,list.length,'kelp')}</section>`;
+    <div class="r"><button class="chip" data-act="fmiss" aria-pressed="${ui.missing}">Missing only</button>${isC?`<button class="chip" data-act="fnow" aria-pressed="${ui.now}">Catchable right now</button><button class="chip" data-act="fseas" aria-pressed="${ui.season}">In season (${SEAS[s]})</button>`:''}<button class="chip" data-act="fsort" aria-pressed="${ui.sort==='az'}">A–Z</button></div>
+    ${isC?`<div class="tabs" role="group" aria-label="Time of day">${['any',...TIMES].map(t => `<button class="chip" data-act="ftime" data-t="${t}" aria-pressed="${ui.time===t}">${t==='any'?'Any time':t}</button>`).join('')}</div>`:''}
+    ${ui.now&&isC?`<p class="small muted">Showing what bites in ${SEAS[s]}, ${S.time.toLowerCase()}, ${WX_LABEL[S.weather].toLowerCase()} weather. Change them with the bar at the bottom.</p>`:''}</div>`;
+  h += `<section><div class="progress-head"><b class="num">${have}<span class="muted" style="font:600 16px var(--body)"> / ${list.length}</span></b><span class="muted small">${arr.length} shown</span><span style="flex:1"></span><button class="btn sm" data-act="bulk" data-m="on">Mark shown</button><button class="btn sm" data-act="bulk" data-m="off">Clear shown</button></div>${bar(have,list.length,'kelp')}</section>`;
   h += arr.length ? `<ul class="list">${arr.map(it => itemRow(c,it)).join('')}</ul>` : `<div class="empty">Nothing matches these filters.</div>`;
   return h;
 }
@@ -345,7 +350,7 @@ function itemRow(c,it){
     det = `<dl class="det">${rows.map(([k,v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
   }
   const tags = (c==='gems' && it.g) ? `<em class="tag">${it.g}</em>` : '';
-  return `<li class="it ${on?'done':''}"><button class="chk" data-act="tog" data-c="${c}" data-id="${it.id}" aria-pressed="${on}" aria-label="Donated: ${esc(it.n)}"></button><div class="it-main" role="button" tabindex="0" aria-expanded="${open}" data-act="open" data-k="${c}:${it.id}"><div class="it-t"><span class="nm">${esc(it.n)}</span>${isC?seasonChips(it):''}${tags}</div><div class="it-s">${esc(meta)}</div>${det}</div></li>`;
+  return `<li class="it ${on?'done':''}"><button class="chk" data-act="tog" data-c="${c}" data-id="${it.id}" aria-pressed="${on}" aria-label="Donated: ${esc(it.n)}"></button><div class="it-main" role="button" tabindex="0" aria-expanded="${open}" data-act="open" data-k="${c}:${it.id}"><div class="it-t"><span class="nm">${esc(it.n)}</span>${isC?seasonChips(it):''}${tags}</div><div class="it-s">${esc(meta)}</div>${det}</div>${heartBtn(c, it.id, it.n)}</li>`;
 }
 
 /* ---------- OFFERINGS ---------- */
@@ -366,7 +371,7 @@ function offeringsView(){
 function peopleView(){
   let arr = D.villagers.slice();
   if(ui.pf==='rom') arr = arr.filter(v => v.rom);
-  if(ui.pf==='fav') arr = arr.filter(v => S.fav[v.id]);
+  if(ui.pf==='fav') arr = arr.filter(v => isFav('people', v.id));
   if(ui.q){ const q = ui.q.toLowerCase(); arr = arr.filter(v => v.n.toLowerCase().includes(q) || v.loved.some(g => g.toLowerCase().includes(q))); }
   if(ui.ps==='birthday') arr.sort((a,b) => (a.b?untilBirthday(a.b):999) - (b.b?untilBirthday(b.b):999));
   else if(ui.ps==='hearts') arr.sort((a,b) => heartsOf(b)-heartsOf(a) || a.n.localeCompare(b.n));
@@ -374,20 +379,20 @@ function peopleView(){
   let h = `<section><div class="h-row"><h2>People</h2><span class="aside num">${D.villagers.filter(v=>heartsOf(v)>=8).length} at 8+ hearts</span></div>
     <p class="lead">Romanceable villagers stop at 8 hearts until you give them the Locket, then 10. Universally loved gift: ${esc((D.universal&&D.universal.loved||[]).join(', ')||'—')}.</p></section>`;
   h += `<div class="toolbar"><input type="search" id="q" placeholder="Search a villager or a gift they love" value="${esc(ui.q)}" aria-label="Search villagers or gifts">
-    <div class="r">${[['all','All'],['rom','Romanceable'],['fav','Starred']].map(([k,l]) => `<button class="chip" data-act="pf" data-k="${k}" aria-pressed="${ui.pf===k}">${l}</button>`).join('')}<span style="flex:1"></span>
+    <div class="r">${[['all','All'],['rom','Romanceable'],['fav','Favourites']].map(([k,l]) => `<button class="chip" data-act="pf" data-k="${k}" aria-pressed="${ui.pf===k}">${l}</button>`).join('')}<span style="flex:1"></span>
     <select id="psort" style="width:auto" aria-label="Sort"><option value="birthday" ${ui.ps==='birthday'?'selected':''}>Next birthday</option><option value="hearts" ${ui.ps==='hearts'?'selected':''}>Most hearts</option><option value="name" ${ui.ps==='name'?'selected':''}>Name</option></select></div></div>`;
   h += arr.length ? `<ul class="list">${arr.map(v => {
     const hr = heartsOf(v), n = v.b ? untilBirthday(v.b) : null, rel = S.rel[v.id];
     const cap = v.rom && !rel ? 8 : 10;
-    return `<li class="ppl"><div class="ppl-h"><button class="star" data-act="fav" data-id="${v.id}" aria-pressed="${!!S.fav[v.id]}" aria-label="Star ${esc(v.n)}">${S.fav[v.id]?'★':'☆'}</button>
+    return `<li class="ppl"><div class="ppl-h">${heartBtn('people', v.id, v.n)}
       <div style="flex:1;min-width:0"><div class="nm">${esc(v.n)} ${v.rom?'<span class="tag coral">romanceable</span>':''} ${rel?`<span class="tag kelp">${rel}</span>`:''}</div>
       <div class="small muted">${v.b?`Birthday ${dateOf(v)} · ${n===0?'<b style="color:var(--coral)">today</b>':'in '+plural(n,'day')}`:'Birthday unknown'}</div></div></div>
       <div class="hearts"><button class="step" data-act="heart" data-id="${v.id}" data-d="-1" aria-label="Fewer hearts for ${esc(v.n)}">−</button>
         <div class="pips" aria-label="${hr} hearts">${Array.from({length:10},(_,i) => `<i class="${i<hr?'on':(i>=cap?'lock':'')}"></i>`).join('')}</div>
         <button class="step" data-act="heart" data-id="${v.id}" data-d="1" aria-label="More hearts for ${esc(v.n)}">+</button><b class="num" style="width:34px;text-align:right">${hr}</b></div>
       ${v.rom?`<div class="seg"><button data-act="rel" data-id="${v.id}" data-v="dating" aria-pressed="${rel==='dating'}">Dating (Locket given)</button><button data-act="rel" data-id="${v.id}" data-v="married" aria-pressed="${rel==='married'}">Married</button></div>`:''}
-      <div class="gifts"><b>Loves:</b> ${esc(v.loved.join(', ')||'—')}${v.hated.length?`<br><b>Hates:</b> ${esc(v.hated.join(', '))}`:''}</div></li>`;
-  }).join('')}</ul>` : `<div class="empty">No villagers match. ${ui.pf==='fav'?'Tap the star on a villager to add them here.':''}</div>`;
+      <div class="gifts"><b>Loves:</b> ${esc(v.loved.join(', ')||'—')}${v.liked&&v.liked.length?`<br><b>Likes:</b> ${esc(v.liked.join(', '))}`:''}${v.hated.length?`<br><b>Hates:</b> ${esc(v.hated.join(', '))}`:''}</div></li>`;
+  }).join('')}</ul>` : `<div class="empty">No villagers match. ${ui.pf==='fav'?'Tap the ♡ on a villager to add them here.':''}</div>`;
   return h;
 }
 
@@ -400,7 +405,7 @@ function recipesView(){
   h += `<div class="toolbar"><input type="search" id="rq" placeholder="Search recipes" value="${esc(ui.rq)}" aria-label="Search recipes"><div class="tabs">${mediums.map(m => `<button class="chip" data-act="rm" data-m="${esc(m)}" aria-pressed="${ui.rm===m}">${esc(m)}</button>`).join('')}</div><div class="r"><button class="chip" data-act="rmiss" aria-pressed="${ui.rmissing}">Not cooked yet</button></div></div>`;
   h += arr.length ? `<ul class="list">${arr.map(r => {
     const on = !!S.done.recipes[r.id];
-    return `<li class="it ${on?'done':''}"><button class="chk" data-act="tog" data-c="recipes" data-id="${r.id}" aria-pressed="${on}" aria-label="Cooked: ${esc(r.n)}"></button><div class="it-main" data-act="open" data-k="recipes:${r.id}"><div class="it-t"><span class="nm">${esc(r.n)}</span><em class="tag">${esc(r.m)}</em></div><div class="it-s">${r.src?'Learn: '+esc(r.src):'Available from the start'}</div>${ui.open['recipes:'+r.id]?`<dl class="det"><dt>Needs</dt><dd>${esc(r.i)}</dd></dl>`:''}</div></li>`;
+    return `<li class="it ${on?'done':''}"><button class="chk" data-act="tog" data-c="recipes" data-id="${r.id}" aria-pressed="${on}" aria-label="Cooked: ${esc(r.n)}"></button><div class="it-main" data-act="open" data-k="recipes:${r.id}"><div class="it-t"><span class="nm">${esc(r.n)}</span><em class="tag">${esc(r.m)}</em></div><div class="it-s">${r.src?'Learn: '+esc(r.src):'Available from the start'}</div>${ui.open['recipes:'+r.id]?`<dl class="det"><dt>Needs</dt><dd>${esc(r.i)}</dd></dl>`:''}</div>${heartBtn('recipes', r.id, r.n)}</li>`;
   }).join('')}</ul>` : `<div class="empty">Nothing matches.</div>`;
   return h;
 }
@@ -436,11 +441,7 @@ function farmView(){
   h += `<section><div class="h-row"><h2>Town rank</h2><span class="aside">${nxt?'next: '+nxt:'top rank'}</span></div><ul class="list"><li class="kv"><span class="k">Current rank</span><div class="seg">${RANKS.map(x => `<button data-act="rank" data-r="${x}" aria-pressed="${r===x}">${x}</button>`).join('')}</div></li>
     <li class="kv"><label class="k" for="rpts">Town points</label><input type="number" id="rpts" min="0" style="width:110px" value="${S.rank.pts||0}"></li>
     ${nxt?`<li class="kv" style="display:block"><div class="progress-head"><span class="small muted">Rank ${nxt} needs ${need} total points</span><b class="num small">${S.rank.pts||0}/${need}</b></div>${bar(Math.min(S.rank.pts||0,need),need)}</li>`:''}</ul></section>`;
-  h += `<section><div class="h-row"><h2>Crop guide</h2><span class="aside">${plural(left,'day')} left in ${SEAS[S.date.s]}</span></div><div class="tabs">${SEAS.map((n,i) => `<button class="chip" data-act="crops" data-s="${i}" aria-pressed="${i===s}">${n}</button>`).join('')}</div>
-    <ul class="list" style="margin-top:8px">${crops.map(c => {
-      const fits = s!==S.date.s || growDays(c) <= left;
-      return `<li class="row"><div class="body"><div class="ttl">${esc(c.n)} <span class="tag">${esc(c.t)}</span>${!fits?' <span class="tag coral">too late</span>':''}</div><div class="sub">${esc(c.g)} · seed ${c.seed} · sells ${c.p} · ${c.ppd} per day</div></div></li>`;
-    }).join('')}</ul></section>`;
+  h += `<section><div class="h-row"><h2>Crops</h2></div><button class="btn" data-act="nav" data-to="crops">Open the best-crop planner</button></section>`;
   return h;
 }
 
@@ -505,20 +506,14 @@ function dataView(){
   <section><div class="h-row"><h2>About</h2></div><p class="lead">Reef Ledger is an unofficial fan-made tracker. It is not affiliated with Stairway Games or Humble Games. Item lists (${D.fish.length} fish, ${D.insects.length} insects, ${D.critters.length} critters, ${D.artifacts.length} artifacts, ${D.fossils.length} fossils, ${D.gems.length} gems), seasons, birthdays, gift preferences, recipes, offerings and quests come from the <a class="link" href="https://coralisland.fandom.com/" target="_blank" rel="noopener">Coral Island Wiki</a> on Fandom, used under CC BY-SA. The wiki can lag behind the latest game version, so a newer patch may add items that are missing here. Daily plans are computed from your date and what you have ticked.</p></section>`;
 }
 
-/* ---------- MORE ---------- */
-function moreView(){
-  const desc = {tips:'Tips of the day and advice',offerings:'Lake Temple altars',recipes:'Recipes to cook',quests:'Storylines and errands',farm:'Tools, skills, town rank, crops',progress:'Completion overview',data:'Install, theme, backup'};
-  return `<section><div class="h-row"><h2>More</h2></div><div class="more-list">${['tips','offerings','recipes','quests','farm','progress','data'].map(k => `<button data-act="nav" data-to="${k}">${svg(k)}<div><b>${Object.fromEntries(NAV)[k]}</b><span>${desc[k]}</span></div></button>`).join('')}</div></section>`;
-}
-
 /* =========================================================
    Render
    ========================================================= */
-const VIEWS = {today:todayView, tips:tipsView, calendar:calendarView, museum:museumView, people:peopleView, offerings:offeringsView, recipes:recipesView, quests:questsView, farm:farmView, progress:progressView, data:dataView, more:moreView};
+const VIEWS = {today:todayView, planner:plannerView, guide:guideView, progress:progressHub, data:dataView, tips:tipsView, calendar:plannerView, museum:museumView, people:peopleView, offerings:offeringsView, recipes:recipesView, quests:questsView, farm:farmView, gifts:giftsView, crops:cropsView, route:routeView};
 function render(){
   const a = document.activeElement, id = a && a.id, pos = a && a.selectionStart;
   renderChrome();
-  $('#view').innerHTML = VIEWS[ui.route]();
+  $('#view').innerHTML = (SUBPAGES.includes(ui.route) ? '<div><button class="link back" data-act="nav" data-to="guide">‹ Field Guide</button></div>' : '') + VIEWS[ui.route]();
   if(id){ const el = document.getElementById(id); if(el){ el.focus(); try{ if(pos!=null) el.setSelectionRange(pos,pos); }catch(e){} } }
 }
 function nav(to){ ui.route = to; ui.q = ''; window.scrollTo(0,0); render(); }
@@ -534,9 +529,11 @@ function ask(msg, label='Confirm'){
 }
 function dateModal(){
   const d = S.date;
-  modal(`<h2>Game date</h2><p class="lead" style="margin:0">Set the date shown in your game.</p>
+  modal(`<h2>Where are you in the game?</h2><p class="lead" style="margin:0">Set the date, the time of day and the weather. The plan and the “catchable right now” lists follow them.</p>
     <div class="f"><label for="m-s">Season</label><select id="m-s">${SEAS.map((n,i) => `<option value="${i}" ${i===d.s?'selected':''}>${n}</option>`).join('')}</select></div>
     <div class="f2"><div class="f"><label for="m-d">Day (1–28)</label><input type="number" id="m-d" min="1" max="28" value="${d.d}"></div><div class="f"><label for="m-y">Year</label><input type="number" id="m-y" min="1" value="${d.y}"></div></div>
+    <div class="f2"><div class="f"><label for="m-t">Time of day</label><select id="m-t">${TIMES.map(t => `<option ${t===S.time?'selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="f"><label for="m-w">Weather</label><select id="m-w">${WEATHERS.map(w => `<option value="${w}" ${w===S.weather?'selected':''}>${WX_LABEL[w]}</option>`).join('')}</select></div></div>
     <div class="acts"><button class="btn" data-act="mcancel">Cancel</button><button class="btn pri" data-act="msave">Save</button></div>`);
 }
 
@@ -548,11 +545,14 @@ document.addEventListener('input', e => {
   const t = e.target;
   if(t.id === 'q'){ ui.q = t.value; render(); }
   else if(t.id === 'rq'){ ui.rq = t.value; render(); }
+  else if(t.id === 'gq'){ ui.gq = t.value; render(); }
+  else if(t.id === 'pq'){ ui.pq = t.value; render(); }
   else if(t.id === 'notes'){ S.notes = t.value; clearTimeout(noteT); noteT = setTimeout(persist, 600); }
   else if(t.id === 'rpts'){ S.rank.pts = Math.max(0, parseInt(t.value)||0); clearTimeout(noteT); noteT = setTimeout(() => { persist(); render(); }, 700); }
 });
 document.addEventListener('change', e => {
   if(e.target.id === 'psort'){ ui.ps = e.target.value; render(); }
+  else if(e.target.id === 'gvsel'){ ui.gv = e.target.value; render(); }
 });
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape' && !$('#modal').hidden){ if(window.__ask) window.__ask(false); else closeModal(); }
@@ -566,27 +566,46 @@ document.addEventListener('click', async e => {
   const a = el.dataset.act, D_ = el.dataset;
   switch(a){
     case 'nav': nav(D_.to); break;
-    case 'goto': ui.route = D_.to; ui.cat = D_.cat; ui.season = D_.f==='season'; ui.missing = true; ui.time = 'any'; ui.q=''; window.scrollTo(0,0); render(); break;
+    case 'goto': ui.route = D_.to; ui.cat = D_.cat; ui.season = D_.f==='season'; ui.now = false; ui.missing = true; ui.time = 'any'; ui.q=''; window.scrollTo(0,0); render(); break;
+    case 'g': { // Field Guide tile
+      ui.route = D_.r; ui.q = ''; ui.gq = '';
+      if(D_.r === 'museum'){ ui.cat = D_.c; ui.now = D_.f === 'now'; ui.season = false; ui.missing = false; ui.time = 'any'; }
+      if(D_.r === 'crops') ui.cropS = null;
+      window.scrollTo(0,0); render(); break; }
+    case 'gsel': { // a global search result
+      const t = D_.t, n = D_.n; ui.gq = '';
+      if(t === 'gift'){ ui.route = 'people'; ui.q = n; ui.pf = 'all'; }
+      else if(t === 'people'){ ui.route = 'people'; ui.q = n; ui.pf = 'all'; }
+      else if(t === 'recipes'){ ui.route = 'recipes'; ui.rq = n; ui.rm = 'All'; ui.rmissing = false; }
+      else if(t === 'crops'){ ui.route = 'crops'; ui.q = n; }
+      else if(t === 'quests'){ ui.route = 'quests'; ui.qg = 'All'; ui.qmissing = false; }
+      else { ui.route = 'museum'; ui.cat = t; ui.q = n; ui.missing = false; ui.season = false; ui.now = false; ui.time = 'any'; }
+      window.scrollTo(0,0); render(); break; }
     case 'date': dateModal(); break;
     case 'mcancel': closeModal(); break;
     case 'msave': { ui.tipShift = 0;
       const s = clamp(parseInt($('#m-s').value)||0,0,3), d = clamp(parseInt($('#m-d').value)||1,1,28), y = Math.max(1,parseInt($('#m-y').value)||1);
-      S.date = {y,s,d}; persist(); closeModal(); render(); break; }
-    case 'next': S.date = addDays(S.date,1); ui.tipShift = 0; persist(); render(); window.scrollTo(0,0); toast('Good morning — ' + fmtY(S.date)); break;
+      S.date = {y,s,d};
+      const tm = $('#m-t') && $('#m-t').value, wx = $('#m-w') && $('#m-w').value;
+      if(TIMES.includes(tm)) S.time = tm; if(WEATHERS.includes(wx)) S.weather = wx;
+      persist(); closeModal(); render(); break; }
+    case 'next': S.date = addDays(S.date,1); ui.tipShift = 0; S.time = 'Morning'; persist(); render(); window.scrollTo(0,0); toast('Good morning — ' + fmtY(S.date)); break;
     case 'setdate': S.date = {y:S.date.y, s:+D_.s, d:+D_.d}; persist(); render(); break;
     case 'rt': S.daily.done[D_.k] = !S.daily.done[D_.k]; persist(); render(); break;
-    case 'tog': { const m = S.done[D_.c]; if(m[D_.id]) delete m[D_.id]; else m[D_.id] = 1; persist(); render(); break; }
+    case 'tog': { const m = S.done[D_.c]; if(m[D_.id]){ delete m[D_.id]; dropRecent(D_.c, D_.id); } else { m[D_.id] = 1; pushRecent(D_.c, D_.id); } persist(); render(); break; }
     case 'open': { const k = D_.k; ui.open[k] = !ui.open[k]; render(); break; }
     case 'cat': ui.cat = D_.c; ui.q = ''; render(); break;
     case 'fmiss': ui.missing = !ui.missing; render(); break;
     case 'fseas': ui.season = !ui.season; render(); break;
+    case 'fnow': ui.now = !ui.now; render(); break;
+    case 'fsort': ui.sort = ui.sort === 'az' ? 'game' : 'az'; render(); break;
     case 'bulk': {
       const c = ui.cat, s = S.date.s;
-      const arr = D[c].filter(it => (!ui.missing || !S.done[c][it.id]) && (!ui.season || !it.s || it.s[s]>0) && (!CRIT3.includes(c) || timeOk(it)) && (!ui.q || it.n.toLowerCase().includes(ui.q.toLowerCase())));
+      const arr = museumItems(c);
       const on = D_.m === 'on';
       if(!arr.length) break;
       if(await ask(`${on?'Mark':'Clear'} ${plural(arr.length,'item')} as ${on?'donated':'not donated'}?`, on?'Mark them':'Clear them')){
-        arr.forEach(it => { if(on) S.done[c][it.id] = 1; else delete S.done[c][it.id]; }); persist(); render();
+        arr.forEach(it => { if(on) S.done[c][it.id] = 1; else { delete S.done[c][it.id]; dropRecent(c, it.id); } }); persist(); render();
       }
       break; }
     case 'mno': window.__ask && window.__ask(false); break;
@@ -594,7 +613,7 @@ document.addEventListener('click', async e => {
     case 'altar': ui.off = +D_.i; render(); break;
     case 'offi': { const o = S.off[D_.o] || (S.off[D_.o] = {}); if(o[D_.i]) delete o[D_.i]; else o[D_.i] = 1; persist(); render(); break; }
     case 'pf': ui.pf = D_.k; render(); break;
-    case 'fav': if(S.fav[D_.id]) delete S.fav[D_.id]; else S.fav[D_.id] = 1; persist(); render(); break;
+    case 'fav': toggleFav(D_.c, D_.id); persist(); render(); break;
     case 'heart': { const v = D.villagers.find(x => x.id === D_.id); const cur = S.hearts[D_.id]||0; S.hearts[D_.id] = clamp(cur + (+D_.d), 0, 10); persist(); render(); break; }
     case 'rel': { S.rel[D_.id] = S.rel[D_.id] === D_.v ? undefined : D_.v; if(!S.rel[D_.id]) delete S.rel[D_.id]; persist(); render(); break; }
     case 'cals': ui.calS = +D_.s; ui.calD = null; render(); break;
@@ -633,6 +652,18 @@ document.addEventListener('click', async e => {
     case 'tc': ui.tc = D_.c; render(); break;
     case 'ftime': ui.time = D_.t; render(); break;
     case 'todoadd': addTodo(); break;
+    case 'todoclear': S.todos = S.todos.filter(x => !x.done); persist(); render(); break;
+    case 'pt': ui.pt = D_.k; window.scrollTo(0,0); render(); break;
+    case 'pexp': ui.pexp[D_.c] = !ui.pexp[D_.c]; render(); break;
+    case 'psel': {
+      const c = D_.c, on = D_.m === 'on';
+      if(on || await ask('Clear every ' + (CATS.find(x => x[0] === c) || [0,c])[1].toLowerCase() + ' donation?', 'Clear all')){
+        D[c].forEach(it => { if(on) S.done[c][it.id] = 1; else { delete S.done[c][it.id]; dropRecent(c, it.id); } });
+        persist(); render();
+      }
+      break; }
+    case 'settime': S.time = D_.t; persist(); render(); break;
+    case 'setwx': S.weather = D_.w; persist(); render(); break;
     case 'todo': { const t = S.todos.find(x => x.id === D_.id); if(t){ t.done = !t.done; persist(); render(); } break; }
     case 'tododel': S.todos = S.todos.filter(x => x.id !== D_.id); persist(); render(); break;
   }

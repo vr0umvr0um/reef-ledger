@@ -6,12 +6,15 @@ ne dépend d'aucun compte ni d'aucun serveur. Vos données restent sur votre app
 
 ## Ce qu'elle contient
 
-- **Today** : plan du jour (événements, anniversaires, ce qui disparaît avec la saison, cultures à planter),
-  conseils du jour, routine quotidienne, to-do personnelle, notes.
-- **Tips** : 42 conseils issus du wiki + conseils contextuels (anniversaires, festivals, paliers du musée…).
-- **Calendar**, **Museum** (69 poissons, 53 insectes, 45 créatures marines, 60 fossiles, 78 artefacts, 35 gemmes,
-  filtres saison et moment de la journée), **People** (cœurs, cadeaux, recherche par cadeau), **Offerings**,
-  **Kitchen** (107 recettes), **Quests**, **Farm & skills**, **Progress**, **Settings**.
+Barre de contexte permanente (date, heure, météo) et 5 onglets :
+
+- **Today** : plan du jour, conseils du jour, « ce qui mord maintenant », routine, favoris, derniers cochés.
+- **Planner** : to-do, notes et calendrier des saisons.
+- **Field Guide** (au centre) : recherche globale et accès à tout : catchable right now, route du jour,
+  meilleure culture à planter, planificateur de cadeaux, villageois, poissons, insectes, créatures marines,
+  gemmes, fossiles, artefacts, recettes, offrandes, quêtes, outils et compétences, conseils.
+- **Progress** : vue d'ensemble, liste du musée par section (avec « Select all »), offrandes du temple.
+- **Settings** : installation, thème, sauvegarde et restauration.
 
 ## Mettre l'appli en ligne (nécessaire pour l'installer sur téléphone)
 

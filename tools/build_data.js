@@ -158,7 +158,7 @@ function links(cellHtml) {
       const u = /^(.*?)\s*\/\s*Unknown/.exec(head);
       if (!m && !u) { warn.push('villager?: ' + head); return; }
       const name = m ? m[1] : u[1];
-      D.villagers.push({ id: slug(name), n: name, b: m ? [mon[m[2]], +m[3]] : null, loved: g.loved, hated: g.hated });
+      D.villagers.push({ id: slug(name), n: name, b: m ? [mon[m[2]], +m[3]] : null, loved: g.loved, liked: g.liked, disliked: g.disliked, hated: g.hated });
     });
     const t = tables(await get('Townies'));
     const cand = new Set();
@@ -212,6 +212,18 @@ function links(cellHtml) {
   {
     const T = tables(await get('Town rank'));
     D.rankTotals = T[0].slice(1).map(c => ({ r: c[0], total: num(c[2]) }));
+  }
+
+  // ---------- IN-GAME (JOURNAL) ORDER ----------
+  // The wiki galleries list fish, insects and critters in the game's own order; keep it as `o`.
+  {
+    const flat = t => t.flat().map(x => x.replace(/\s*\/\s*/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
+    const galleries = [['fish', tables(await get('Fish'))[1]], ['insects', tables(await get('Insect'))[2]], ['critters', tables(await get('Critter'))[1]]];
+    galleries.forEach(([k, t]) => {
+      const order = flat(t);
+      D[k].forEach(it => { const i = order.indexOf(it.n); it.o = i < 0 ? 999 : i; });
+      if (D[k].some(it => it.o === 999)) warn.push('order gap in ' + k);
+    });
   }
 
   fs.writeFileSync(__dirname + '/data.json', JSON.stringify(D));

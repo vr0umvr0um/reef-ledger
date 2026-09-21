@@ -2,7 +2,7 @@
 // Usage: node tools/smoke.js
 const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
-const src = ['data.js', 'tips.js', 'app.js'].map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('\n;\n');
+const src = ['data.js', 'tips.js', 'features.js', 'app.js'].map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('\n;\n');
 
 const els = {};
 const mk = id => els[id] || (els[id] = { id, innerHTML: '', hidden: false, className: '', title: '', textContent: '', addEventListener() {}, querySelector() { return null; }, matches() { return false; }, focus() {}, value: '' });
