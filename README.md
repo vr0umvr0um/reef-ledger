@@ -12,7 +12,9 @@ Barre de contexte permanente (date, heure, météo) et 5 onglets :
 - **Planner** : to-do, notes et calendrier des saisons.
 - **Field Guide** (au centre) : recherche globale et accès à tout : catchable right now, route du jour,
   meilleure culture à planter, planificateur de cadeaux, villageois, poissons, insectes, créatures marines,
-  gemmes, fossiles, artefacts, recettes, offrandes, quêtes, outils et compétences, conseils.
+  gemmes, fossiles, artefacts, cultures et plantes (89), graines et plants (95), plantes sauvages (83),
+  produits d'élevage (42), produits artisanaux (446), plats cuisinés (107, avec énergie et santé),
+  offrandes, quêtes, outils et compétences, conseils.
 - **Progress** : vue d'ensemble, liste du musée par section (avec « Select all »), offrandes du temple.
 - **Settings** : installation, thème, sauvegarde et restauration.
 

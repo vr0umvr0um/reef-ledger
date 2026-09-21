@@ -102,7 +102,7 @@ window.addEventListener('storage', e => { if(e.key === KEY && e.newValue){ try {
 /* =========================================================
    UI state (not persisted)
    ========================================================= */
-const ui = {route:'today', cat:'fish', q:'', missing:false, season:false, time:'any', open:{}, calS:null, calD:null, pf:'all', ps:'birthday', off:0, rq:'', rm:'All', rmissing:false, qg:'All', qmissing:false, cropS:null, tipShift:0, tc:'All', installEvt:null, sort:'game', now:false, pt:'overview', pexp:{}, pq:'', gq:'', gv:''};
+const ui = {route:'today', cat:'fish', q:'', missing:false, season:false, time:'any', open:{}, calS:null, calD:null, pf:'all', ps:'birthday', off:0, rq:'', rm:'All', rmissing:false, qg:'All', qmissing:false, cropS:null, gc:'crops', gf:'All', gs:false, gmore:false, tipShift:0, tc:'All', installEvt:null, sort:'game', now:false, pt:'overview', pexp:{}, pq:'', gq:'', gv:''};
 const TIMES = ['Morning','Afternoon','Evening','Night'];
 const timeOk = it => timeMatch(it, ui.time);
 
@@ -145,7 +145,7 @@ const byScarce = (a,b) => a.n-b.n || rarRank(b.it.r)-rarRank(a.it.r) || b.it.p-a
    ========================================================= */
 const NAV = [['today','Today'],['planner','Planner'],['guide','Field Guide'],['progress','Progress'],['data','Settings']];
 const TAB_OF = r => ({today:'today', planner:'planner', calendar:'planner', progress:'progress', data:'data', guide:'guide'})[r] || 'guide';
-const SUBPAGES = ['museum','people','offerings','recipes','quests','farm','tips','gifts','crops','route'];
+const SUBPAGES = ['catalog','museum','people','offerings','recipes','quests','farm','tips','gifts','crops','route'];
 
 function renderChrome(){
   const cur = TAB_OF(ui.route);
@@ -235,9 +235,9 @@ function todayView(){
     (pr ? `<ul class="list">${pr}</ul>` : `<div class="empty">No birthdays this week. Star villagers in People to get a daily chat reminder with a gift idea.</div>`) + `</section>`;
 
   /* farm */
-  const inS = D.crops.filter(c => c.s[s]);
+  const inS = D.crops.filter(c => c.k === 'Crop' && c.s[s]);
   const plantable = inS.filter(c => growDays(c) <= left).sort((a,b) => b.ppd - a.ppd);
-  const nextCrops = D.crops.filter(c => c.s[nx]).sort((a,b) => b.ppd - a.ppd);
+  const nextCrops = D.crops.filter(c => c.k === 'Crop' && c.s[nx]).sort((a,b) => b.ppd - a.ppd);
   h += `<section><div class="h-row"><h2>Farm & shopping</h2><span class="aside"><button class="link" data-act="nav" data-to="farm">Crop guide</button></span></div>`;
   if(plantable.length) h += `<ul class="list">${plantable.slice(0,5).map(c => `<li class="row"><div class="body"><div class="ttl">Plant ${esc(c.n)} <span class="tag kelp">ready ${fmt(addDays(d,growDays(c)))}</span></div><div class="sub">${esc(c.g)} · seed ${c.seed} · sells ${c.p}</div></div></li>`).join('')}</ul><p class="small muted">Only crops that finish before ${SEAS[s]} ends, best profit per day first.</p>`;
   else h += `<div class="empty">Nothing planted today would ripen before ${SEAS[s]} ends. ${left<=7?`Plan for ${SEAS[nx]}: buy seeds at Sam’s General Store and plant on day 1.`:''}</div>`;
@@ -405,7 +405,7 @@ function recipesView(){
   h += `<div class="toolbar"><input type="search" id="rq" placeholder="Search recipes" value="${esc(ui.rq)}" aria-label="Search recipes"><div class="tabs">${mediums.map(m => `<button class="chip" data-act="rm" data-m="${esc(m)}" aria-pressed="${ui.rm===m}">${esc(m)}</button>`).join('')}</div><div class="r"><button class="chip" data-act="rmiss" aria-pressed="${ui.rmissing}">Not cooked yet</button></div></div>`;
   h += arr.length ? `<ul class="list">${arr.map(r => {
     const on = !!S.done.recipes[r.id];
-    return `<li class="it ${on?'done':''}"><button class="chk" data-act="tog" data-c="recipes" data-id="${r.id}" aria-pressed="${on}" aria-label="Cooked: ${esc(r.n)}"></button><div class="it-main" data-act="open" data-k="recipes:${r.id}"><div class="it-t"><span class="nm">${esc(r.n)}</span><em class="tag">${esc(r.m)}</em></div><div class="it-s">${r.src?'Learn: '+esc(r.src):'Available from the start'}</div>${ui.open['recipes:'+r.id]?`<dl class="det"><dt>Needs</dt><dd>${esc(r.i)}</dd></dl>`:''}</div>${heartBtn('recipes', r.id, r.n)}</li>`;
+    return `<li class="it ${on?'done':''}"><button class="chk" data-act="tog" data-c="recipes" data-id="${r.id}" aria-pressed="${on}" aria-label="Cooked: ${esc(r.n)}"></button><div class="it-main" data-act="open" data-k="recipes:${r.id}"><div class="it-t"><span class="nm">${esc(r.n)}</span><em class="tag">${esc(r.m)}</em></div><div class="it-s">${r.src?'Learn: '+esc(r.src):'Available from the start'}${r.e!==undefined?' · restores '+r.e+' energy / '+r.h+' health':''}</div>${ui.open['recipes:'+r.id]?`<dl class="det"><dt>Needs</dt><dd>${esc(r.i)}</dd>${r.y>1?`<dt>Makes</dt><dd>${r.y}</dd>`:''}${r.b?`<dt>Buff</dt><dd>${esc(r.b)}</dd>`:''}</dl>`:''}</div>${heartBtn('recipes', r.id, r.n)}</li>`;
   }).join('')}</ul>` : `<div class="empty">Nothing matches.</div>`;
   return h;
 }
@@ -509,7 +509,7 @@ function dataView(){
 /* =========================================================
    Render
    ========================================================= */
-const VIEWS = {today:todayView, planner:plannerView, guide:guideView, progress:progressHub, data:dataView, tips:tipsView, calendar:plannerView, museum:museumView, people:peopleView, offerings:offeringsView, recipes:recipesView, quests:questsView, farm:farmView, gifts:giftsView, crops:cropsView, route:routeView};
+const VIEWS = {today:todayView, planner:plannerView, guide:guideView, progress:progressHub, data:dataView, tips:tipsView, calendar:plannerView, museum:museumView, people:peopleView, offerings:offeringsView, recipes:recipesView, quests:questsView, farm:farmView, gifts:giftsView, crops:cropsView, route:routeView, catalog:catalogView};
 function render(){
   const a = document.activeElement, id = a && a.id, pos = a && a.selectionStart;
   renderChrome();
@@ -571,13 +571,14 @@ document.addEventListener('click', async e => {
       ui.route = D_.r; ui.q = ''; ui.gq = '';
       if(D_.r === 'museum'){ ui.cat = D_.c; ui.now = D_.f === 'now'; ui.season = false; ui.missing = false; ui.time = 'any'; }
       if(D_.r === 'crops') ui.cropS = null;
+      if(D_.r === 'catalog'){ ui.gc = D_.gc; ui.gf = 'All'; ui.gs = false; ui.gmore = false; }
       window.scrollTo(0,0); render(); break; }
     case 'gsel': { // a global search result
       const t = D_.t, n = D_.n; ui.gq = '';
       if(t === 'gift'){ ui.route = 'people'; ui.q = n; ui.pf = 'all'; }
       else if(t === 'people'){ ui.route = 'people'; ui.q = n; ui.pf = 'all'; }
       else if(t === 'recipes'){ ui.route = 'recipes'; ui.rq = n; ui.rm = 'All'; ui.rmissing = false; }
-      else if(t === 'crops'){ ui.route = 'crops'; ui.q = n; }
+      else if(CATALOG[t]){ ui.route = 'catalog'; ui.gc = t; ui.gf = 'All'; ui.gs = false; ui.gmore = false; ui.q = n; }
       else if(t === 'quests'){ ui.route = 'quests'; ui.qg = 'All'; ui.qmissing = false; }
       else { ui.route = 'museum'; ui.cat = t; ui.q = n; ui.missing = false; ui.season = false; ui.now = false; ui.time = 'any'; }
       window.scrollTo(0,0); render(); break; }
@@ -598,6 +599,9 @@ document.addEventListener('click', async e => {
     case 'fmiss': ui.missing = !ui.missing; render(); break;
     case 'fseas': ui.season = !ui.season; render(); break;
     case 'fnow': ui.now = !ui.now; render(); break;
+    case 'gf': ui.gf = D_.g; ui.gmore = false; render(); break;
+    case 'gs': ui.gs = !ui.gs; render(); break;
+    case 'gmore': ui.gmore = true; render(); break;
     case 'fsort': ui.sort = ui.sort === 'az' ? 'game' : 'az'; render(); break;
     case 'bulk': {
       const c = ui.cat, s = S.date.s;

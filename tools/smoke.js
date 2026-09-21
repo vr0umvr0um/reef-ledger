@@ -14,7 +14,7 @@ global.navigator = { userAgent: 'node' };
 global.matchMedia = () => ({ matches: false });
 global.location = { search: '', protocol: 'file:' };
 
-(0, eval)(src + '\n;globalThis.__T={VIEWS,ui,get S(){return S},D,TIPS,dailyTips,contextTips,addDays,absDay,todayView};');
+(0, eval)(src + '\n;globalThis.__T={CATALOG,VIEWS,ui,get S(){return S},D,TIPS,dailyTips,contextTips,addDays,absDay,todayView};');
 const T = globalThis.__T;
 let bad = 0;
 const check = (name, h) => { if (typeof h !== 'string' || /undefined|NaN|\[object/.test(h)) { bad++; console.log('SUSPECT', name, (String(h).match(/.{0,60}(undefined|NaN|\[object).{0,60}/) || [])[0]); } };
@@ -27,6 +27,14 @@ for (const dt of dates) {
 T.S.date = { y: 1, s: 3, d: 28 };
 for (const c of ['fish', 'insects', 'critters', 'fossils', 'artifacts', 'gems']) { T.ui.cat = c; check('museum ' + c, T.VIEWS.museum()); }
 T.ui.cat = 'fish';
+for (const c of Object.keys(T.CATALOG)) {
+  T.ui.gc = c; T.ui.gf = 'All'; T.ui.gs = false; T.ui.gmore = true;
+  const h = T.VIEWS.catalog(); check('catalog ' + c, h);
+  const groups = T.CATALOG[c].groups || [...new Set(T.CATALOG[c].items().map(T.CATALOG[c].groupOf))];
+  T.ui.gf = groups[0]; check('catalog ' + c + ' group', T.VIEWS.catalog()); T.ui.gs = true; check('catalog ' + c + ' season', T.VIEWS.catalog());
+  console.log(c, T.CATALOG[c].items().length, 'items,', (h.match(/class="it"/g) || []).length, 'rows,', groups.length, 'groups');
+}
+T.ui.gf = 'All'; T.ui.gs = false;
 for (const t of ['Morning', 'Afternoon', 'Evening', 'Night']) { T.ui.time = t; const h = T.VIEWS.museum(); check('time ' + t, h); console.log(t, (h.match(/class="it /g) || []).length, 'fish shown'); }
 T.ui.time = 'any';
 T.ui.q = 'hummus'; T.ui.route = 'people'; const ph = T.VIEWS.people(); console.log('people who love hummus:', (ph.match(/class="ppl"/g) || []).length); T.ui.q = '';

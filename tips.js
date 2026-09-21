@@ -103,7 +103,7 @@ function contextTips(ctx) {
   // nearly finished collection
   collections().filter(c => c.have >= 1 && c.need - c.have >= 1 && c.need - c.have <= 3).slice(0, 1).forEach(c => out.push({ id: 'col-' + c.n, c: 'Museum', now: true, t: `${c.n}: only ${c.need - c.have} to go (${c.have}/${c.need})${c.r ? '. Reward: ' + c.r : ''}.` }));
   // best crops right now
-  const plant = D.crops.filter(c => c.s[s] && growDays(c) <= left).sort((a, b) => b.ppd - a.ppd);
+  const plant = D.crops.filter(c => c.k === 'Crop' && c.s[s] && growDays(c) <= left).sort((a, b) => b.ppd - a.ppd);
   if (plant.length) out.push({ id: 'crop', c: 'Farming', now: true, t: `Best profit per day you can still plant in ${SEAS[s]}: ${plant.slice(0, 3).map(c => `${c.n} (${c.ppd}/day, ready ${fmt(addDays(ctx.date, growDays(c)))})`).join(', ')}.` });
   // recipe letters
   for (const r of D.recipes) {
