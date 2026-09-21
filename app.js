@@ -38,7 +38,7 @@ const pct = (a,b) => b ? Math.round(100*a/b) : 0;
 const short = (s,n=64) => { s = String(s||''); return s.length > n ? s.slice(0,n-1).trimEnd()+'…' : s; };
 const plural = (n,w) => n + ' ' + w + (n===1 ? '' : 's');
 const ICONS = {
-  today:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  today:'<circle cx="12" cy="12" r="9"/><path d="M15.8 8.2l-2.1 5.5-5.5 2.1 2.1-5.5z"/><path d="M12 3v1.6M12 19.4V21M3 12h1.6M19.4 12H21"/>',
   calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   museum:'<path d="M3 12c3-5 8-6 12-3l6-3v12l-6-3c-4 3-9 2-12-3z"/><circle cx="9" cy="11" r=".6"/>',
   people:'<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5.5-7 10-7 10z"/>',
@@ -47,8 +47,8 @@ const ICONS = {
   recipes:'<path d="M4 11h16v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3zM2 11h20M8 7c0-2 2-2 2-4M14 7c0-2 2-2 2-4"/>',
   quests:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
   farm:'<path d="M12 21v-9M12 12c0-4-3-6-7-6 0 4 3 6 7 6zM12 14c0-3 2-5 6-5 0 3-2 5-6 5z"/>',
-  progress:'<path d="M4 20V11M10 20V4M16 20v-6M22 20H2"/>',
-  data:'<path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.2"/><circle cx="10" cy="12" r="2.2"/><circle cx="17.5" cy="18" r="2.2"/>',
+  progress:'<circle cx="12" cy="5" r="2"/><path d="M12 7v14M7.5 11.5h9M5 14c0 4 3 7 7 7s7-3 7-7"/>',
+  data:'<circle cx="12" cy="12" r="2.8"/><circle cx="12" cy="12" r="7"/><path d="M12 2.5v4.7M12 16.8v4.7M2.5 12h4.7M16.8 12h4.7M5.3 5.3l3.3 3.3M15.4 15.4l3.3 3.3M5.3 18.7l3.3-3.3M15.4 8.6l3.3-3.3"/>',
   tips:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',
   gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8h14v-8M12 8c-2-4-6-3-5 0 .5 1.5 3 1 5 0zM12 8c2-4 6-3 5 0-.5 1.5-3 1-5 0z"/>',
   bug:'<path d="M12 8c-3 0-5 2-5 5s2 6 5 6 5-3 5-6-2-5-5-5zM12 8V5M9 5l1 2M15 5l-1 2M7 12H4M17 12h3M7.5 16L5 18M16.5 16l2.5 2"/>',
@@ -57,7 +57,7 @@ const ICONS = {
   scroll:'<path d="M8 4h10v13a3 3 0 0 1-3 3H6a3 3 0 0 0 3-3V4zM8 4H6a2 2 0 0 0-2 2v1h4"/>',
   route:'<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>',
   guide:'<path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z"/>',
-  planner:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/>'
+  planner:'<path d="M20.5 3.5c-7 0-12 4.5-13 12L5 20l4.5-2.5c7.5-1 11-6 11-14z"/><path d="M8.5 15.5L15 9"/>'
 };
 const svg = n => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]||''}</svg>`;
 

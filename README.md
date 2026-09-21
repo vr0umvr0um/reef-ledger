@@ -73,5 +73,5 @@ Les listes (objets, saisons, anniversaires, cadeaux, recettes, offrandes, quête
 [Coral Island Wiki](https://coralisland.fandom.com/) sur Fandom, sous licence CC BY-SA : gardez cette mention si
 vous republiez l'appli. Le wiki peut avoir du retard sur la dernière version du jeu (d'autres applications
 recensent par exemple 6 autels et 32 offrandes, contre 5 autels et 28 offrandes ici).
-Polices : Bricolage Grotesque et Figtree (SIL Open Font License), embarquées.
+Polices : IM Fell English, Newsreader et Courier Prime (SIL Open Font License), embarquées. Esthétique « journal de bord » (papier et encre le jour, veille de nuit en mode sombre).
 Application fan-made, non affiliée à Stairway Games ni à Humble Games.
