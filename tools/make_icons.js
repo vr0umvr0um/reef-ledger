@@ -32,25 +32,25 @@ const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 
 function shade(x, y, maskable) {
-  // background: bright lagoon turquoise, deeper toward the bottom
-  let col = mix(hex('#12A69A'), hex('#0B5C58'), y / 512);
-  // bubbles in sandy cream
+  // background: aged parchment, browning toward the bottom
+  let col = mix(hex('#C7A868'), hex('#5A4020'), y / 512);
+  // bubbles in parchment cream
   [[400, 110, 22], [352, 76, 12], [430, 170, 10]].forEach(([cx, cy, r]) => {
     const d = Math.hypot(x - cx, y - cy);
-    if (Math.abs(d - r) < 3.2) col = mix(col, hex('#FBF2DE'), 0.85);
+    if (Math.abs(d - r) < 3.2) col = mix(col, hex('#F6EDD5'), 0.85);
   });
-  // coral branch in vivid coral-orange
+  // coral branch in terracotta
   let dmin = 1e9;
   BRANCH.forEach(([ax, ay, bx, by, r]) => { dmin = Math.min(dmin, capsule(x, y, ax, ay, bx, by, r)); });
-  if (dmin < 0) col = mix(hex('#E4562F'), hex('#FFAE85'), Math.max(0, 1 - (y - 150) / 280) * 0.55);
-  // waves: sand and sun gold
-  [[430, 12, '#FBF2DE'], [462, 12, '#E4B23A']].forEach(([base, th, c], i) => {
+  if (dmin < 0) col = mix(hex('#AB5128'), hex('#E0A377'), Math.max(0, 1 - (y - 150) / 280) * 0.55);
+  // waves: parchment cream and forest green
+  [[430, 12, '#F6EDD5'], [462, 12, '#3B6140']].forEach(([base, th, c], i) => {
     const wy = base + 9 * Math.sin((x / 512) * Math.PI * 4 + i * 1.6);
     if (Math.abs(y - wy) < th / 2) col = hex(c);
   });
-  // sun-gold porthole rings around the edge
+  // antique-gold porthole rings around the edge
   const rr = Math.hypot(x - 256, y - 256);
-  if (Math.abs(rr - 236) < 3.5 || Math.abs(rr - 224) < 1.6) col = hex('#E4B23A');
+  if (Math.abs(rr - 236) < 3.5 || Math.abs(rr - 224) < 1.6) col = hex('#9C7714');
   return col;
 }
 
