@@ -73,5 +73,5 @@ Les listes (objets, saisons, anniversaires, cadeaux, recettes, offrandes, quête
 [Coral Island Wiki](https://coralisland.fandom.com/) sur Fandom, sous licence CC BY-SA : gardez cette mention si
 vous republiez l'appli. Le wiki peut avoir du retard sur la dernière version du jeu (d'autres applications
 recensent par exemple 6 autels et 32 offrandes, contre 5 autels et 28 offrandes ici).
-Polices : IM Fell English, Newsreader et Courier Prime (SIL Open Font License), embarquées. Esthétique « journal de bord », palette carte au trésor vintage (parchemin, vert forêt, terracotta et or antique le jour ; veillée à la bougie la nuit).
+Polices : IM Fell English, Newsreader et Courier Prime (SIL Open Font License), embarquées. Esthétique « journal de bord », palette carte au trésor vintage (parchemin, vert forêt, terracotta et or antique). Le mode sombre reprend la même famille de teintes assombrie, plutôt qu'une palette indépendante.
 Application fan-made, non affiliée à Stairway Games ni à Humble Games.
