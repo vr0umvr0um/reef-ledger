@@ -1,5 +1,4 @@
-/* Reef Ledger: a ship's logbook.
-   Paper and blue-black ink by day, a lamp-lit night watch after dark.
+/* Reef Ledger: a ship's logbook, one theme: light parchment, forest green, terracotta and antique gold.
    Type: IM Fell English (headings), Newsreader (text), Courier Prime (stamps, dates, figures). */
 @font-face{font-family:'IM Fell English';src:url(fonts/imfell-400.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:'IM Fell English';src:url(fonts/imfell-400-italic.woff2) format('woff2');font-weight:400;font-style:italic;font-display:swap}
@@ -7,49 +6,24 @@
 @font-face{font-family:'Courier Prime';src:url(fonts/courierprime-400.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:'Courier Prime';src:url(fonts/courierprime-700.woff2) format('woff2');font-weight:700;font-style:normal;font-display:swap}
 
-:root{color-scheme:light dark}
-:root[data-theme="light"]{color-scheme:light}
-:root[data-theme="dark"]{color-scheme:dark}
+:root{color-scheme:light}
 [hidden]{display:none!important}
 img{max-width:100%}
 
 /* ---------- palette: vintage treasure map ---------- */
 :root{
-  --bg:#E9DCBA; --surface:#F6EDD5; --surface2:#DECBA0; --ink:#33230F; --ink2:#7C6A47; --line:#C7B078;
-  --teal:#3B6140; --teal-ink:#F6EDD5; --teal-soft:#DEE6D3;
+  --bg:#F7F0DE; --surface:#FDFAF0; --surface2:#EEE4C9; --ink:#33230F; --ink2:#7C6A47; --line:#DCCDA1;
+  --teal:#3B6140; --teal-ink:#FDFAF0; --teal-soft:#DEE6D3;
   --coral:#AB5128; --coral-soft:#EDD5BF;
   --sun:#9C7714; --sun-soft:#EFE0B4;
   --kelp:#5C7A34; --kelp-soft:#E2E7CE;
   --sp:#B15A55; --su:#9C7714; --fa:#A65D22; --wi:#4C6482;
   --shadow:0 1px 0 rgba(51,35,15,.1),0 10px 24px rgba(90,64,24,.16);
-  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .22 0 0 0 0 .08 0 0 0 .12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .22 0 0 0 0 .08 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --display:'IM Fell English','Iowan Old Style','Palatino Linotype',Georgia,serif;
   --body:'Newsreader','Iowan Old Style',Georgia,'Times New Roman',serif;
   --mono:'Courier Prime','Courier New',ui-monospace,monospace;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#3A301F; --surface:#493E2A; --surface2:#594C33; --ink:#F8EED6; --ink2:#DACB9F; --line:#7A663F;
-    --teal:#7CB587; --teal-ink:#3A301F; --teal-soft:#3F5638;
-    --coral:#E08E5C; --coral-soft:#5A3B29;
-    --sun:#E3BE5E; --sun-soft:#574518;
-    --kelp:#A6C378; --kelp-soft:#485530;
-    --sp:#E1978F; --su:#E3BE5E; --fa:#E29B5C; --wi:#8DA3C4;
-    --shadow:0 1px 0 rgba(0,0,0,.4),0 10px 24px rgba(0,0,0,.35);
-    --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .94 0 0 0 0 .87 0 0 0 0 .65 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#3A301F; --surface:#493E2A; --surface2:#594C33; --ink:#F8EED6; --ink2:#DACB9F; --line:#7A663F;
-  --teal:#7CB587; --teal-ink:#3A301F; --teal-soft:#3F5638;
-  --coral:#E08E5C; --coral-soft:#5A3B29;
-  --sun:#E3BE5E; --sun-soft:#574518;
-  --kelp:#A6C378; --kelp-soft:#485530;
-  --sp:#E1978F; --su:#E3BE5E; --fa:#E29B5C; --wi:#8DA3C4;
-  --shadow:0 1px 0 rgba(0,0,0,.4),0 10px 24px rgba(0,0,0,.35);
-  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .94 0 0 0 0 .87 0 0 0 0 .65 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
 /* ---------- base ---------- */
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -116,7 +90,7 @@ b,strong{font-weight:650}
 .chip small{opacity:.8;margin-left:5px;font:400 11px var(--mono)}
 input[type=search],input[type=text],input[type=number],select,textarea{border:1px solid var(--line);border-bottom:2px solid var(--ink);background:var(--surface);border-radius:2px;padding:9px 12px;min-height:42px;width:100%}
 input::placeholder,textarea::placeholder{color:var(--ink2);font-style:italic}
-textarea{min-height:120px;resize:vertical;line-height:1.5;background-image:repeating-linear-gradient(transparent 0 26px,var(--line) 26px 27px);background-attachment:local}
+textarea{min-height:120px;resize:vertical;line-height:27px;padding:2px 12px 0;background-image:repeating-linear-gradient(transparent 0 26px,var(--line) 26px 27px);background-attachment:local;background-position:0 2px}
 .bar{height:11px;border:1px solid var(--ink);background:transparent;padding:1px;overflow:hidden}
 .bar i{display:block;height:100%;background:repeating-linear-gradient(135deg,var(--ink) 0 2px,transparent 2px 4px)}
 .bar.kelp i{background:repeating-linear-gradient(135deg,var(--kelp) 0 2px,transparent 2px 4px)}
@@ -125,7 +99,6 @@ textarea{min-height:120px;resize:vertical;line-height:1.5;background-image:repea
 .tag.sun{color:var(--sun)}
 .tag.kelp{color:var(--kelp)}
 .tag.teal{color:var(--teal)}
-:root[data-theme="dark"] .tag.teal{color:var(--teal)}
 .list{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--ink2);border-radius:2px;box-shadow:var(--shadow);overflow:hidden}
 .list>li{border-top:1px dotted var(--ink2)}
 .list>li:first-child{border-top:0}
@@ -140,10 +113,8 @@ textarea{min-height:120px;resize:vertical;line-height:1.5;background-image:repea
 .sc b.part{opacity:1;background:transparent!important;border:1px dashed currentColor}
 .sc b.sp{color:var(--sp)} .sc b.su{color:var(--su)} .sc b.fa{color:var(--fa)} .sc b.wi{color:var(--wi)}
 .sc b.on.sp{background:var(--sp)} .sc b.on.su{background:var(--su)} .sc b.on.fa{background:var(--fa)} .sc b.on.wi{background:var(--wi)}
-.sc b.on{color:#FBF6E8}
+.sc b.on{color:#FDFAF0}
 .sc b.cur{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--ink)}
-:root[data-theme="dark"] .sc b.on{color:#3A301F}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .sc b.on{color:#3A301F}}
 
 /* ---------- hero (today) ---------- */
 .hero{display:flex;flex-direction:column;gap:14px}
@@ -155,7 +126,6 @@ textarea{min-height:120px;resize:vertical;line-height:1.5;background-image:repea
 .banner b{color:var(--coral)}
 .banner.teal{background:var(--teal-soft);border-left-color:var(--teal)} .banner.teal b{color:var(--teal)}
 .banner.sun{background:var(--sun-soft);border-left-color:var(--sun)} .banner.sun b{color:var(--sun)}
-:root[data-theme="dark"] .banner.teal b{color:var(--teal)}
 .banner .t{font-weight:650}
 
 /* task rows */
@@ -171,7 +141,6 @@ textarea{min-height:120px;resize:vertical;line-height:1.5;background-image:repea
 .chk[aria-pressed="true"]::after{opacity:1}
 .hit{flex:none;width:44px;height:44px;margin:-9px -9px -9px -10px;display:grid;place-items:center;background:none;border:0}
 .link{background:none;border:0;padding:0;color:var(--teal);font-weight:600;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px}
-:root[data-theme="dark"] .link{color:var(--teal)}
 .grp{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink2);padding:11px 14px 4px;background:var(--surface)}
 
 /* museum items */

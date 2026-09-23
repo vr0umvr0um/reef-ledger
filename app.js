@@ -82,14 +82,6 @@ const migrate = r => { const b = def(); const o = Object.assign(b, r||{}); Objec
 let S;
 try { S = migrate(JSON.parse(localStorage.getItem(KEY)||'null')); } catch(e){ S = def(); }
 
-const PREF = 'reefledger.prefs';
-let prefs = {theme:'auto'};
-try { prefs = Object.assign(prefs, JSON.parse(localStorage.getItem(PREF)||'{}')); } catch(e){}
-function applyTheme(){
-  const r = document.documentElement;
-  if(prefs.theme === 'auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', prefs.theme);
-}
-function savePrefs(){ try { localStorage.setItem(PREF, JSON.stringify(prefs)); } catch(e){} }
 let saveFailed = false;
 function persist(){
   S.ts = Date.now();
@@ -496,9 +488,7 @@ function dataView(){
   else if(ui.installEvt) inst = `<p class="lead">Install Reef Ledger as an app. It opens in its own window and works without a connection.</p><div style="margin-top:10px"><button class="btn pri" data-act="install">Install app</button></div>`;
   else if(ios) inst = `<p class="lead">On iPhone or iPad: open this page in Safari, tap the Share button, then “Add to Home Screen”.</p>`;
   else inst = `<p class="lead">In Chrome or Edge, open the browser menu and choose “Install Reef Ledger” (or “Add to Home screen” on Android). Firefox on Android has “Install” in its menu too.</p>`;
-  const ver = {auto:'Match my device', light:'Light', dark:'Dark'};
   return `<section><div class="h-row"><h2>Install</h2></div>${inst}</section>
-  <section><div class="h-row"><h2>Appearance</h2></div><div class="seg">${Object.keys(ver).map(k => `<button data-act="theme" data-v="${k}" aria-pressed="${prefs.theme===k}">${ver[k]}</button>`).join('')}</div></section>
   <section><div class="h-row"><h2>Backup & moving devices</h2></div>
     <p class="lead">Your progress is stored on this device only, and it survives closing the app. To move it to another phone or computer, save a backup file here and restore it there.</p>
     <div class="chips" style="margin-top:12px"><button class="btn pri" data-act="export">Save backup file</button><button class="btn" data-act="copy">Copy backup text</button></div></section>
@@ -679,7 +669,6 @@ document.addEventListener('click', async e => {
     case 'import': { const t = $('#imp').value.trim(); if(t) await restoreFrom(t); break; }
     case 'reset': if(await ask('This erases all ticked items, hearts, tools, to-dos and notes on this device.', 'Erase everything')){ S = def(); persist(); render(); toast('Progress erased'); } break;
     case 'install': if(ui.installEvt){ const ev = ui.installEvt; ev.prompt(); try { await ev.userChoice; } catch(e){} ui.installEvt = null; render(); } break;
-    case 'theme': prefs.theme = D_.v; savePrefs(); applyTheme(); render(); break;
     case 'tipmore': ui.tipShift++; render(); break;
     case 'tc': ui.tc = D_.c; render(); break;
     case 'ftime': ui.time = D_.t; render(); break;
@@ -722,7 +711,6 @@ document.addEventListener('change', e => {
 });
 
 /* boot */
-applyTheme();
 { const r0 = new URLSearchParams(location.search).get('r'); if(r0 && VIEWS[r0]) ui.route = r0; }
 render();
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); ui.installEvt = e; render(); });
