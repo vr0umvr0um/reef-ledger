@@ -1,10 +1,10 @@
 // Service worker: makes the app work offline.
 // Bump VERSION whenever you change any file, so installed copies refresh.
-const VERSION = 'reefledger-v15';
+const VERSION = 'reefledger-v16';
 const SHELL = [
   './', 'index.html', 'styles.css', 'data.js', 'people.js', 'tips.js', 'features.js', 'app.js', 'manifest.webmanifest',
   'fonts/imfell-400.woff2', 'fonts/imfell-400-italic.woff2', 'fonts/newsreader-var.woff2', 'fonts/courierprime-400.woff2', 'fonts/courierprime-700.woff2',
-  'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-64.png'
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-64.png', 'icons/favicon.svg'
 ];
 
 self.addEventListener('install', e => {

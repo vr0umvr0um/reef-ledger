@@ -54,7 +54,18 @@ function shade(x, y, maskable) {
   return col;
 }
 
-function render(size, { rounded, scale }) {
+// Simplified mark for tiny sizes: parchment tile, bold terracotta coral, forest-green wave (same colours as the in-app logo).
+const FLAT_BRANCH = [[256, 400, 256, 250, 34], [256, 330, 150, 210, 30], [150, 210, 128, 108, 26], [256, 300, 366, 190, 30], [366, 190, 392, 92, 26], [366, 190, 316, 122, 24], [150, 210, 200, 130, 24]];
+function shadeFlat(x, y) {
+  let col = hex('#F7F0DE');
+  let dmin = 1e9;
+  FLAT_BRANCH.forEach(([ax, ay, bx, by, r]) => { dmin = Math.min(dmin, capsule(x, y, ax, ay, bx, by, r)); });
+  if (dmin < 0) col = hex('#AB5128');
+  const wy = 452 + 16 * Math.sin((x / 512) * Math.PI * 4);
+  if (Math.abs(y - wy) < 24) col = hex('#3B6140');
+  return col;
+}
+function render(size, { rounded, scale, flat }) {
   const buf = Buffer.alloc(size * size * 4);
   const SS = 3;
   for (let py = 0; py < size; py++) for (let px = 0; px < size; px++) {
@@ -69,7 +80,7 @@ function render(size, { rounded, scale }) {
         const d = Math.hypot(Math.max(dx, 0), Math.max(dy, 0)) + Math.min(Math.max(dx, dy), 0) - 112;
         alpha = d > 0 ? 0 : 1;
       }
-      const c = shade(x, y);
+      const c = flat ? shadeFlat(x, y) : shade(x, y);
       r += c[0] * alpha; g += c[1] * alpha; b += c[2] * alpha; a += alpha;
     }
     const n = SS * SS, o = (py * size + px) * 4;
@@ -84,5 +95,5 @@ fs.writeFileSync(path.join(out, 'icon-512.png'), render(512, { rounded: true, sc
 fs.writeFileSync(path.join(out, 'icon-192.png'), render(192, { rounded: true, scale: 1 }));
 fs.writeFileSync(path.join(out, 'maskable-512.png'), render(512, { rounded: false, scale: 0.78 }));
 fs.writeFileSync(path.join(out, 'apple-touch-icon.png'), render(180, { rounded: false, scale: 0.9 }));
-fs.writeFileSync(path.join(out, 'favicon-64.png'), render(64, { rounded: true, scale: 1 }));
+fs.writeFileSync(path.join(out, 'favicon-64.png'), render(64, { rounded: true, scale: 1, flat: true }));
 console.log('icons written to', out);
