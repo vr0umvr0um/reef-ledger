@@ -42,7 +42,10 @@ b,strong{font-weight:650}
 .main{padding-inline:16px;padding-block:0 calc(150px + env(safe-area-inset-bottom,0px));max-width:860px;margin-inline:auto}
 .top{position:sticky;top:0;z-index:20;background:var(--bg);background-image:var(--grain);display:flex;align-items:center;gap:10px;padding-block:calc(10px + env(safe-area-inset-top,0px)) 10px;border-bottom:3px double var(--ink);margin-inline:-16px;padding-inline:16px}
 .brand{font:italic 400 24px/1 var(--display);letter-spacing:.01em;margin-right:auto;display:flex;align-items:center;gap:9px}
-.brand svg{width:24px;height:24px;stroke:var(--ink);stroke-width:1.4}
+.brand svg{width:32px;height:32px;fill:none;flex:none}
+.rail .brand svg{width:40px;height:40px}
+.brand .lc{stroke:var(--coral)}
+.brand .lw{stroke:var(--teal)}
 .datepill{display:flex;align-items:center;gap:8px;border:1px solid var(--ink);background:var(--surface);border-radius:2px;padding:6px 11px;font:400 13px var(--mono);text-transform:uppercase;letter-spacing:.04em}
 .datepill b{font-weight:700}
 .datepill small{color:var(--ink2);font-size:12px}

@@ -59,6 +59,7 @@ const ICONS = {
   guide:'<path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z"/>',
   planner:'<path d="M20.5 3.5c-7 0-12 4.5-13 12L5 20l4.5-2.5c7.5-1 11-6 11-14z"/><path d="M8.5 15.5L15 9"/>'
 };
+const BRAND_MARK = "<svg class=\"logo\" viewBox=\"0 0 24 24\" fill=\"none\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path class=\"lc\" d=\"M12 18V10M12 14.5 7 9.5M7 9.5 6 4.5M7 9.5 9.5 6M12 12.5 17 7.5M17 7.5 18 3.5M17 7.5 14.5 4.5\"/><path class=\"lw\" d=\"M2.5 21c2.2 0 2.2-1.6 4.75-1.6S9.5 21 12 21s2.4-1.6 4.75-1.6S19.3 21 21.5 21\"/></svg>";
 const svg = n => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]||''}</svg>`;
 
 /* dates: 4 seasons x 28 days, day 1 is always a Monday */
@@ -141,7 +142,7 @@ const SUBPAGES = ['shops','upgrades','catalog','museum','people','offerings','re
 
 function renderChrome(){
   const cur = TAB_OF(ui.route);
-  $('#rail').innerHTML = `<div class="brand">${svg('offerings')}Reef Ledger</div>` + NAV.map(([k,l]) => `<button data-act="nav" data-to="${k}" ${cur===k?'aria-current="page"':''}>${svg(k)}${l}</button>`).join('');
+  $('#rail').innerHTML = `<div class="brand">${BRAND_MARK}Reef Ledger</div>` + NAV.map(([k,l]) => `<button data-act="nav" data-to="${k}" ${cur===k?'aria-current="page"':''}>${svg(k)}${l}</button>`).join('');
   $('#tabbar').innerHTML = NAV.map(([k,l]) => `<button class="${k==='guide'?'mid':''}" data-act="nav" data-to="${k}" ${cur===k?'aria-current="page"':''}><span class="ic">${svg(k)}</span><span>${k==='guide'?'Guide':l}</span></button>`).join('');
   $('#datepill').innerHTML = ctxHtml();
   $('#ctx').innerHTML = ctxHtml();
